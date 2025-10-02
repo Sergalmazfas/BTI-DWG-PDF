@@ -31,6 +31,7 @@ from google.cloud import storage
 
 # Local imports
 from dwg_converter import convert_dwg_to_pdf
+from gcs_queue_manager import GCSQueueManager
 
 # Add current directory to path for local imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -44,6 +45,7 @@ user_data = {}
 application = None
 _background_loop = None
 _loop_thread = None
+queue_manager = None
 
 # --- DWG → PDF Configuration ---
 ALLOWED_EXTENSIONS = {'dwg'}  # Only DWG
@@ -105,6 +107,18 @@ def parse_pubsub_message(data):
     except Exception as e:
         logger.error(f"❌ Error parsing Pub/Sub message: {e}")
         return None, None, None
+
+def init_queue_manager():
+    """Инициализация GCS Queue Manager"""
+    global queue_manager
+    try:
+        queue_manager = GCSQueueManager()
+        queue_manager._ensure_bucket_structure()
+        logger.info("✅ GCS Queue Manager initialized")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize GCS Queue Manager: {e}")
+        return False
 
 def _start_background_loop():
     global _background_loop, _loop_thread
@@ -285,14 +299,6 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
         
-        # Начинаем обработку
-        await update.message.reply_text(
-            "🚀 DWG → PDF конвертация\n\n"
-            f"📦 Файл: {document.file_name}\n"
-            f"📏 Размер: {document.file_size / 1024 / 1024:.2f} MB\n\n"
-            "⏳ Загружаю..."
-        )
-        
         # Скачиваем файл из Telegram
         file = await context.bot.get_file(document.file_id)
         
@@ -304,9 +310,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.info(f"📥 Файл скачан: {temp_path}")
         
         try:
-            # Шаг 1: Сохранить исходный DWG в GCS
-            await update.message.reply_text("📤 Сохраняем исходный файл в облако...")
-            
+            # Сохраняем исходный DWG в GCS
             timestamp = int(time.time())
             raw_key = f"raw/{timestamp}/{document.file_name}"
             
@@ -321,17 +325,50 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
             logger.info(f"✅ Исходный файл сохранен: {raw_url}")
             
-            # Шаг 2: Конвертировать DWG → PDF
-            await update.message.reply_text(
-                "🔄 Конвертирую DWG → PDF...\n\n"
-                "⏳ Подождите 2-5 минут"
-            )
-            
-            # Конвертируем локально
-            pdf_path = convert_dwg_to_pdf(temp_path)
-            
-            if pdf_path and os.path.exists(pdf_path):
-                # Шаг 3: Загрузить PDF в GCS
+            # Добавляем задание в очередь
+            if queue_manager:
+                job_data = {
+                    "user_id": user_id,
+                    "chat_id": update.effective_chat.id,
+                    "filename": document.file_name,
+                    "file_size": document.file_size,
+                    "dwg_path": raw_key,
+                    "dwg_url": raw_url,
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+                
+                job_id = queue_manager.add_job_to_queue(job_data)
+                
+                # Проверяем, заблокирована ли обработка
+                if queue_manager._is_processing_locked():
+                    await update.message.reply_text(
+                        "📋 Файл добавлен в очередь обработки\n\n"
+                        f"📦 Файл: {document.file_name}\n"
+                        f"🆔 ID задания: {job_id}\n\n"
+                        "⏳ Обработка начнется после завершения предыдущего задания\n"
+                        "📊 Текущий статус: В очереди"
+                    )
+                else:
+                    await update.message.reply_text(
+                        "🚀 Файл принят, начинается обработка\n\n"
+                        f"📦 Файл: {document.file_name}\n"
+                        f"🆔 ID задания: {job_id}\n\n"
+                        "⏳ Конвертирую DWG → PDF...\n"
+                        "📊 Текущий статус: В работе"
+                    )
+            else:
+                # Fallback: прямая обработка без очереди
+                await update.message.reply_text(
+                    "🚀 DWG → PDF конвертация (прямая обработка)\n\n"
+                    f"📦 Файл: {document.file_name}\n"
+                    f"📏 Размер: {document.file_size / 1024 / 1024:.2f} MB\n\n"
+                    "⏳ Загружаю..."
+                )
+                
+                # Прямая конвертация
+                pdf_path = convert_dwg_to_pdf(temp_path)
+                
+                if pdf_path and os.path.exists(pdf_path):
                 await update.message.reply_text("📤 Загружаю PDF в облако...")
                 
                 pdf_key = f"processed/{timestamp}/plan.pdf"
@@ -426,6 +463,11 @@ def init_bot():
         _run_coro(application.initialize())
     if not getattr(application, "_running", False):
         _run_coro(application.start())
+    
+    # Инициализируем queue manager
+    if not init_queue_manager():
+        logger.warning("⚠️ Queue manager initialization failed, but bot will continue")
+    
     logger.info("Bot initialized and started on background loop")
     return True
 
@@ -462,7 +504,9 @@ def status():
             "health": "/health",
             "status": "/status",
             "webhook": "/",
-            "gcs_push": "/gcs/push"
+            "gcs_push": "/gcs/push",
+            "process_queue": "/process-queue",
+            "queue_status": "/queue-status"
         }
     })
 
@@ -590,6 +634,114 @@ def upload_file():
             "message": "Failed to process DWG file"
         }), 500
 
+@app.route('/process-queue', methods=['POST'])
+def process_queue():
+    """Обрабатывает следующее задание из очереди"""
+    try:
+        if not queue_manager:
+            return jsonify({"status": "error", "message": "Queue manager not initialized"}), 500
+        
+        # Получаем следующее задание
+        job = queue_manager.get_next_job()
+        if not job:
+            return jsonify({"status": "no_jobs", "message": "No jobs in queue or processing locked"})
+        
+        job_id = job["job_id"]
+        job_data = job["data"]
+        
+        logger.info(f"🚀 Processing job from queue: {job_id}")
+        
+        try:
+            # Скачиваем DWG файл из GCS
+            gcs_client = storage.Client()
+            bucket = gcs_client.bucket("btibot-processed")
+            blob = bucket.blob(job_data["dwg_path"])
+            
+            # Создаем временный файл
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.dwg') as temp_file:
+                blob.download_to_filename(temp_file.name)
+                temp_path = temp_file.name
+            
+            # Конвертируем DWG → PDF
+            pdf_path = convert_dwg_to_pdf(temp_path)
+            
+            if pdf_path and os.path.exists(pdf_path):
+                # Загружаем PDF обратно в GCS
+                timestamp = int(time.time())
+                pdf_key = f"processed/{timestamp}/plan.pdf"
+                pdf_blob = bucket.blob(pdf_key)
+                pdf_blob.upload_from_filename(pdf_path)
+                pdf_blob.make_public()
+                pdf_url = f"https://storage.googleapis.com/btibot-processed/{pdf_key}"
+                
+                # Завершаем задание
+                result_data = {
+                    "pdf_url": pdf_url,
+                    "pdf_path": pdf_key,
+                    "processed_at": datetime.now(timezone.utc).isoformat()
+                }
+                queue_manager.finish_job(job_id, result_data)
+                
+                # Отправляем уведомление пользователю через Telegram
+                if application:
+                    try:
+                        async def send_notification():
+                            await application.bot.send_message(
+                                chat_id=job_data["chat_id"],
+                                text=f"✅ Конвертация завершена!\n\n"
+                                     f"📦 Файл: {job_data['filename']}\n"
+                                     f"🆔 ID: {job_id}\n\n"
+                                     f"📄 PDF готов: {pdf_url}"
+                            )
+                        
+                        _run_coro(send_notification())
+                    except Exception as e:
+                        logger.error(f"Failed to send notification: {e}")
+                
+                return jsonify({
+                    "status": "success",
+                    "job_id": job_id,
+                    "pdf_url": pdf_url
+                })
+            else:
+                # Конвертация не удалась
+                queue_manager.fail_job(job_id, "DWG to PDF conversion failed")
+                return jsonify({
+                    "status": "error",
+                    "job_id": job_id,
+                    "message": "Conversion failed"
+                }), 500
+                
+        finally:
+            # Удаляем временные файлы
+            try:
+                if 'temp_path' in locals() and os.path.exists(temp_path):
+                    os.unlink(temp_path)
+                if 'pdf_path' in locals() and pdf_path and os.path.exists(pdf_path):
+                    os.unlink(pdf_path)
+            except:
+                pass
+                
+    except Exception as e:
+        logger.exception(f"❌ Error in process_queue: {e}")
+        return jsonify({
+            "status": "error",
+            "message": f"Internal server error: {str(e)}"
+        }), 500
+
+@app.route('/queue-status', methods=['GET'])
+def queue_status():
+    """Возвращает статус очереди"""
+    try:
+        if not queue_manager:
+            return jsonify({"status": "error", "message": "Queue manager not initialized"}), 500
+        
+        status = queue_manager.get_queue_status()
+        return jsonify(status)
+    except Exception as e:
+        logger.exception(f"❌ Error getting queue status: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/gcs/push', methods=['POST'])
 def gcs_push():
     """Endpoint для Pub/Sub push notifications"""
@@ -686,6 +838,42 @@ def webhook():
         _run_coro(application.process_update(update))
     return jsonify({"status":"OK"})
 
+def process_queue_worker():
+    """Фоновый процесс для обработки очереди"""
+    import requests
+    import time
+    
+    while True:
+        try:
+            # Проверяем очередь каждые 30 секунд
+            time.sleep(30)
+            
+            # Отправляем запрос на обработку очереди
+            try:
+                response = requests.post('http://localhost:8080/process-queue', timeout=60)
+                if response.status_code == 200:
+                    result = response.json()
+                    if result.get('status') == 'success':
+                        logger.info(f"✅ Queue processed: {result.get('job_id')}")
+                    elif result.get('status') == 'no_jobs':
+                        logger.debug("📭 No jobs in queue")
+            except requests.exceptions.RequestException as e:
+                logger.error(f"❌ Queue processing request failed: {e}")
+                
+        except Exception as e:
+            logger.error(f"❌ Queue worker error: {e}")
+            time.sleep(60)  # Wait longer on error
+
 if __name__ == '__main__':
+    # Initialize bot
+    init_bot()
+    
+    # Start queue worker in background
+    import threading
+    queue_worker_thread = threading.Thread(target=process_queue_worker, daemon=True, name="queue-worker")
+    queue_worker_thread.start()
+    logger.info("🚀 Queue worker started")
+    
+    # Start Flask app
     port = int(os.getenv('PORT', '8080'))
     app.run(host='0.0.0.0', port=port)
