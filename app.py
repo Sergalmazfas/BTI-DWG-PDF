@@ -506,7 +506,8 @@ def status():
             "webhook": "/",
             "gcs_push": "/gcs/push",
             "process_queue": "/process-queue",
-            "queue_status": "/queue-status"
+            "queue_status": "/queue-status",
+            "aps_callback": "/aps-callback"
         }
     })
 
@@ -741,6 +742,48 @@ def queue_status():
     except Exception as e:
         logger.exception(f"❌ Error getting queue status: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/aps-callback', methods=['POST'])
+def aps_callback():
+    """Handle APS onComplete callback"""
+    try:
+        callback_data = request.get_json()
+        logger.info(f"📞 APS Callback received: {callback_data}")
+        logger.info(f"📞 Callback headers: {dict(request.headers)}")
+        logger.info(f"📞 Callback method: {request.method}")
+        
+        # Парсим данные callback
+        workitem_id = callback_data.get('workItemId')
+        status = callback_data.get('status')
+        
+        if not workitem_id:
+            logger.error("❌ No workItemId in callback")
+            return jsonify({"error": "Missing workItemId"}), 400
+        
+        logger.info(f"📊 WorkItem {workitem_id} status: {status}")
+        
+        if status == 'success':
+            # Обрабатываем успешное завершение
+            logger.info(f"✅ WorkItem {workitem_id} completed successfully")
+            
+            # Здесь можно добавить логику обработки результата
+            # Например, уведомление пользователя через Telegram
+            
+        elif status == 'failed':
+            # Обрабатываем ошибку
+            logger.error(f"❌ WorkItem {workitem_id} failed")
+            
+            # Детальное логирование ошибки
+            error_details = callback_data.get('details', {})
+            logger.error(f"📋 Error details: {error_details}")
+            
+            # Здесь можно добавить логику обработки ошибки
+        
+        return jsonify({"status": "received"})
+        
+    except Exception as e:
+        logger.error(f"❌ Error in aps_callback: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/gcs/push', methods=['POST'])
 def gcs_push():

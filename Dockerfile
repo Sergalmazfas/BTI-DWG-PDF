@@ -18,6 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app.py .
 COPY dwg_converter.py .
 COPY gcs_queue_manager.py .
+COPY forge_appbundle_manager.py .
 
 # Создание пользователя
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
