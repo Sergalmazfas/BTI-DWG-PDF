@@ -1,0 +1,578 @@
+"""
+BTI DWG → PDF Converter Bot
+Telegram bot for converting DWG files to PDF
+"""
+
+import os
+import sys
+import json
+import logging
+import asyncio
+import threading
+import tempfile
+import time
+from datetime import datetime
+from typing import Dict
+
+# Third-party imports - Flask
+from flask import Flask, request, jsonify
+from werkzeug.utils import secure_filename
+
+# Third-party imports - Telegram
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
+
+# Third-party imports - Other
+import requests
+
+# Third-party imports - Google Cloud
+from google.cloud import storage
+
+# Local imports
+from dwg_converter import convert_dwg_to_pdf
+
+# Add current directory to path for local imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = Flask(__name__)
+
+user_data = {}
+application = None
+_background_loop = None
+_loop_thread = None
+
+# --- DWG → PDF Configuration ---
+ALLOWED_EXTENSIONS = {'dwg'}  # Only DWG
+MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
+
+def allowed_file(filename):
+    """Проверяет, что файл имеет разрешенное расширение"""
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def validate_file(file):
+    """Валидирует загруженный файл"""
+    if not file:
+        return False, "No file provided"
+    
+    if not file.filename:
+        return False, "No filename provided"
+    
+    if not allowed_file(file.filename):
+        return False, f"File type not allowed. Only {', '.join(ALLOWED_EXTENSIONS)} files are supported"
+    
+    # Проверяем размер файла
+    file.seek(0, 2)  # Переходим в конец файла
+    file_size = file.tell()
+    file.seek(0)  # Возвращаемся в начало
+    
+    if file_size > MAX_FILE_SIZE:
+        return False, f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB"
+    
+    if file_size == 0:
+        return False, "Empty file"
+    
+    return True, "File is valid"
+
+def _start_background_loop():
+    global _background_loop, _loop_thread
+    _background_loop = asyncio.new_event_loop()
+    def run_loop_forever():
+        asyncio.set_event_loop(_background_loop)
+        _background_loop.run_forever()
+    _loop_thread = threading.Thread(target=run_loop_forever, name="bot-event-loop", daemon=True)
+    _loop_thread.start()
+    logger.info("Background asyncio loop started")
+
+def _run_coro(coro):
+    if _background_loop is None:
+        raise RuntimeError("Background loop is not started")
+    fut = asyncio.run_coroutine_threadsafe(coro, _background_loop)
+    return fut.result()
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Главное меню бота
+    """
+    user_id = update.effective_user.id
+    user_data[user_id] = {'step': 'main_menu'}
+    
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("📐 Загрузить DWG файл", callback_data="upload_dwg")],
+        [InlineKeyboardButton("ℹ️ Информация о сервисе", callback_data="info")]
+    ])
+    
+    welcome_message = (
+        "👋 **Добро пожаловать в BTI DWG → PDF Converter!**\n\n"
+        "📐 **Конвертация DWG → PDF**\n"
+        "   • Загрузите DWG чертёж\n"
+        "   • Получите PDF план\n"
+        "   • Автоматическая конвертация\n\n"
+        "💡 Выберите действие:"
+    )
+    
+    await update.message.reply_text(welcome_message, reply_markup=keyboard, parse_mode='Markdown')
+
+async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Обработчик текстовых сообщений
+    """
+    user_id = update.effective_user.id
+    text = update.message.text
+    logger.info(f"📨 Получено сообщение от {user_id}: {text}")
+    
+    # Показываем главное меню
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("📐 Загрузить DWG файл", callback_data="upload_dwg")],
+        [InlineKeyboardButton("ℹ️ Информация о сервисе", callback_data="info")]
+    ])
+    
+    await update.message.reply_text(
+        "❓ Пожалуйста, выберите действие из меню:",
+        reply_markup=keyboard
+    )
+
+async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Обработчик callbacks
+    """
+    query = update.callback_query
+    await query.answer()
+    
+    callback_data = query.data
+    user_id = query.from_user.id
+    
+    if callback_data == "upload_dwg":
+        user_data[user_id] = {'step': 'waiting_dwg_file'}
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔙 Назад в главное меню", callback_data="back_to_menu")]
+        ])
+        await query.edit_message_text(
+            "📐 **DWG → PDF конвертация**\n\n"
+            "Отправьте мне DWG файл:\n\n"
+            "📄 Принимаются только .dwg файлы\n"
+            "📏 Максимальный размер: 100 MB\n"
+            "⏱️ Время обработки: 2-5 минут\n\n"
+            "📊 Результат:\n"
+            "• PDF чертёж (готов к печати)\n"
+            "• Исходный DWG (резервная копия)\n"
+            "• Публичные ссылки на 30 дней\n\n"
+            "💡 Отправьте DWG файл, и я начну обработку!",
+            reply_markup=keyboard,
+            parse_mode='Markdown'
+        )
+        return
+    
+    elif callback_data == "back_to_menu":
+        user_data[user_id] = {'step': 'main_menu'}
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("📐 Загрузить DWG файл", callback_data="upload_dwg")],
+            [InlineKeyboardButton("ℹ️ Информация о сервисе", callback_data="info")]
+        ])
+        await query.edit_message_text(
+            "🏠 **Главное меню**\n\n"
+            "Выберите нужную услугу:",
+            reply_markup=keyboard,
+            parse_mode='Markdown'
+        )
+        return
+    
+    elif callback_data == "info":
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔙 Назад в главное меню", callback_data="back_to_menu")]
+        ])
+        await query.edit_message_text(
+            "ℹ️ **О сервисе BTI DWG → PDF Converter**\n\n"
+            "**Возможности:**\n"
+            "📐 Конвертация DWG файлов в PDF\n"
+            "☁️ Облачное хранение результатов\n"
+            "🔗 Публичные ссылки на файлы\n\n"
+            "**Технологии:**\n"
+            "• ezdxf + matplotlib для конвертации\n"
+            "• Google Cloud Storage\n"
+            "• Telegram Bot API\n\n"
+            "**Ограничения:**\n"
+            "• Только DWG файлы\n"
+            "• Максимум 100MB\n"
+            "• Время обработки: 2-5 минут",
+            reply_markup=keyboard,
+            parse_mode='Markdown'
+        )
+        return
+
+async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Обработчик файлов (DWG)
+    """
+    try:
+        user_id = update.effective_user.id
+        document = update.message.document
+        filename = document.file_name.lower()
+        
+        logger.info(f"📦 Получен файл от {user_id}: {document.file_name}")
+        
+        # Проверяем, в какой ветке находится пользователь
+        user_state = user_data.get(user_id, {})
+        current_step = user_state.get('step', 'main_menu')
+        
+        # Если пользователь не в режиме загрузки файла, предлагаем варианты
+        if current_step != 'waiting_dwg_file':
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("📐 Да, конвертировать DWG→PDF", callback_data="upload_dwg")],
+                [InlineKeyboardButton("🔙 Нет, в главное меню", callback_data="back_to_menu")]
+            ])
+            
+            await update.message.reply_text(
+                f"📦 Получен файл: {document.file_name}\n\n"
+                "Что вы хотите сделать?",
+                reply_markup=keyboard
+            )
+            return
+        
+        # Валидация: ТОЛЬКО DWG
+        if not filename.endswith('.dwg'):
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("🔙 Назад в главное меню", callback_data="back_to_menu")]
+            ])
+            await update.message.reply_text(
+                "❌ Поддерживается только DWG\n\n"
+                "Загрузите файл в формате .dwg\n\n"
+                f"Ваш файл: {document.file_name}\n"
+                f"Формат: {os.path.splitext(document.file_name)[1]}\n\n"
+                "💡 Экспортируйте чертёж как DWG и попробуйте снова",
+                reply_markup=keyboard
+            )
+            return
+        
+        # Валидация: размер файла (максимум 100MB)
+        max_size = 100 * 1024 * 1024  # 100MB
+        if document.file_size > max_size:
+            await update.message.reply_text(
+                f"❌ Ошибка: файл слишком большой ({document.file_size / 1024 / 1024:.1f} MB)\n"
+                f"📏 Максимальный размер: {max_size / 1024 / 1024:.0f} MB"
+            )
+            return
+        
+        # Начинаем обработку
+        await update.message.reply_text(
+            "🚀 DWG → PDF конвертация\n\n"
+            f"📦 Файл: {document.file_name}\n"
+            f"📏 Размер: {document.file_size / 1024 / 1024:.2f} MB\n\n"
+            "⏳ Загружаю..."
+        )
+        
+        # Скачиваем файл из Telegram
+        file = await context.bot.get_file(document.file_id)
+        
+        # Сохраняем во временную директорию
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.dwg') as temp_file:
+            await file.download_to_drive(temp_file.name)
+            temp_path = temp_file.name
+        
+        logger.info(f"📥 Файл скачан: {temp_path}")
+        
+        try:
+            # Шаг 1: Сохранить исходный DWG в GCS
+            await update.message.reply_text("📤 Сохраняем исходный файл в облако...")
+            
+            timestamp = int(time.time())
+            raw_key = f"raw/{timestamp}/{document.file_name}"
+            
+            gcs_client = storage.Client()
+            bucket = gcs_client.bucket("btibot-processed")
+            
+            # Upload raw DWG
+            raw_blob = bucket.blob(raw_key)
+            raw_blob.upload_from_filename(temp_path)
+            raw_blob.make_public()
+            raw_url = f"https://storage.googleapis.com/btibot-processed/{raw_key}"
+            
+            logger.info(f"✅ Исходный файл сохранен: {raw_url}")
+            
+            # Шаг 2: Конвертировать DWG → PDF
+            await update.message.reply_text(
+                "🔄 Конвертирую DWG → PDF...\n\n"
+                "⏳ Подождите 2-5 минут"
+            )
+            
+            # Конвертируем локально
+            pdf_path = convert_dwg_to_pdf(temp_path)
+            
+            if pdf_path and os.path.exists(pdf_path):
+                # Шаг 3: Загрузить PDF в GCS
+                await update.message.reply_text("📤 Загружаю PDF в облако...")
+                
+                pdf_key = f"processed/{timestamp}/plan.pdf"
+                pdf_blob = bucket.blob(pdf_key)
+                pdf_blob.upload_from_filename(pdf_path)
+                pdf_blob.make_public()
+                pdf_url = f"https://storage.googleapis.com/btibot-processed/{pdf_key}"
+                
+                # Используем InlineKeyboardButton
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📄 Скачать PDF", url=pdf_url)],
+                    [InlineKeyboardButton("📁 Скачать DWG (оригинал)", url=raw_url)],
+                    [InlineKeyboardButton("🏠 Главное меню", callback_data="back_to_menu")]
+                ])
+                
+                message = (
+                    "✅ DWG → PDF готово!\n\n"
+                    f"📦 Файл: {document.file_name}\n"
+                    f"📏 Размер: {document.file_size / 1024 / 1024:.2f} MB\n\n"
+                    "📄 PDF чертёж готов к печати\n"
+                    "📁 Исходный DWG сохранён\n"
+                    "🔗 Ссылки действуют 30 дней\n\n"
+                    "💡 Скачайте файлы по кнопкам ниже:"
+                )
+                
+                await update.message.reply_text(message, reply_markup=keyboard)
+                
+                logger.info(f"✅ DWG→PDF: Complete: {pdf_url}")
+                
+                # Очистка локального PDF
+                try:
+                    os.unlink(pdf_path)
+                except:
+                    pass
+            else:
+                # Ошибка конвертации
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📁 Скачать DWG (оригинал)", url=raw_url)],
+                    [InlineKeyboardButton("🏠 Главное меню", callback_data="back_to_menu")]
+                ])
+                
+                message = (
+                    "❌ Не удалось обработать файл\n\n"
+                    "Файл передан чертёжнику для ручной обработки.\n\n"
+                    "📁 Исходный DWG сохранён - можете скачать\n"
+                    "📞 Свяжемся с вами в течение часа"
+                )
+                
+                await update.message.reply_text(message, reply_markup=keyboard)
+                logger.error(f"❌ DWG→PDF failed, fallback to manual")
+        
+        finally:
+            # Удаляем временный файл
+            try:
+                os.unlink(temp_path)
+                logger.info("🗑️ Временный файл удален")
+            except Exception as e:
+                logger.warning(f"Failed to delete temp file: {e}")
+    
+    except Exception as e:
+        logger.exception(f"❌ Error handling document: {e}")
+        
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔄 Попробовать снова", callback_data="upload_dwg")],
+            [InlineKeyboardButton("🏠 Главное меню", callback_data="back_to_menu")]
+        ])
+        
+        message = (
+            "❌ Не удалось обработать файл\n\n"
+            "Попробуйте снова или обратитесь в поддержку."
+        )
+        
+        await update.message.reply_text(message, reply_markup=keyboard)
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
+    logger.exception("Unhandled exception", exc_info=context.error)
+
+def init_bot():
+    global application
+    if _background_loop is None:
+        _start_background_loop()
+    token = os.getenv('BOT_TOKEN')
+    if not token:
+        logger.error('BOT_TOKEN missing'); return False
+    application = Application.builder().token(token).build()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
+    application.add_handler(MessageHandler(filters.Document.ALL, handle_document))
+    application.add_handler(CallbackQueryHandler(handle_callback))
+    application.add_error_handler(error_handler)
+    if not getattr(application, "_initialized", False):
+        _run_coro(application.initialize())
+    if not getattr(application, "_running", False):
+        _run_coro(application.start())
+    logger.info("Bot initialized and started on background loop")
+    return True
+
+# --- Flask Routes ---
+
+@app.route('/health')
+def health():
+    return jsonify({"status":"OK","message":"BTI DWG → PDF Converter is running"})
+
+@app.route('/status')
+def status():
+    """Статус сервиса с информацией о конфигурации"""
+    return jsonify({
+        "service": "BTI DWG → PDF Converter",
+        "version": "1.0.0",
+        "status": "running",
+        "mode": "production",
+        "supported_formats": list(ALLOWED_EXTENSIONS),
+        "max_file_size_mb": MAX_FILE_SIZE // (1024 * 1024),
+        "features": {
+            "telegram_bot": True,
+            "dwg_to_pdf": True,
+            "gcs_storage": True,
+            "pdf_conversion": True,
+            "raw_file_backup": True
+        },
+        "storage": {
+            "bucket": "btibot-processed",
+            "raw_path": "/raw/<timestamp>/<filename>",
+            "processed_path": "/processed/<timestamp>/plan.pdf"
+        },
+        "endpoints": {
+            "upload": "/upload",
+            "health": "/health",
+            "status": "/status",
+            "webhook": "/"
+        }
+    })
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    """
+    DWG → PDF конвертация (API endpoint)
+    
+    Принимает:
+    - file: DWG файл через multipart/form-data
+    
+    Возвращает:
+    - success: true/false
+    - message: описание результата
+    - pdf_url: URL PDF в GCS
+    - raw_url: URL исходного DWG в GCS
+    - file_info: информация о файле
+    """
+    try:
+        logger.info("🚀 API: Received upload request")
+        
+        # Проверяем наличие файла
+        if 'file' not in request.files:
+            logger.warning("No file in request")
+            return jsonify({
+                "success": False,
+                "message": "No file provided"
+            }), 400
+        
+        file = request.files['file']
+        
+        # Валидируем файл
+        is_valid, message = validate_file(file)
+        if not is_valid:
+            logger.warning(f"File validation failed: {message}")
+            return jsonify({
+                "success": False,
+                "message": message
+            }), 400
+        
+        logger.info(f"📦 Processing DWG file: {file.filename}")
+        
+        # Только DWG
+        filename_lower = file.filename.lower()
+        if not filename_lower.endswith('.dwg'):
+            logger.warning(f"❌ Not a DWG file: {file.filename}")
+            return jsonify({
+                "success": False,
+                "message": "Only DWG files are supported"
+            }), 400
+        
+        suffix = '.dwg'
+        
+        # Сохраняем файл во временную директорию
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+            file.save(temp_file.name)
+            temp_file_path = temp_file.name
+        
+        try:
+            timestamp = int(time.time())
+            gcs_client = storage.Client()
+            bucket = gcs_client.bucket("btibot-processed")
+            
+            # Шаг 1: Сохранить исходный файл в GCS (/raw/)
+            raw_key = f"raw/{timestamp}/{secure_filename(file.filename)}"
+            raw_blob = bucket.blob(raw_key)
+            raw_blob.upload_from_filename(temp_file_path)
+            raw_blob.make_public()
+            raw_url = f"https://storage.googleapis.com/btibot-processed/{raw_key}"
+            
+            logger.info(f"✅ Raw DWG saved to GCS: {raw_url}")
+            
+            # Шаг 2: Конвертировать DWG → PDF
+            logger.info(f"🔄 DWG→PDF: Converting...")
+            pdf_path = convert_dwg_to_pdf(temp_file_path)
+            
+            if pdf_path and os.path.exists(pdf_path):
+                # Шаг 3: Загрузить PDF в GCS
+                pdf_key = f"processed/{timestamp}/plan.pdf"
+                pdf_blob = bucket.blob(pdf_key)
+                pdf_blob.upload_from_filename(pdf_path)
+                pdf_blob.make_public()
+                pdf_url = f"https://storage.googleapis.com/btibot-processed/{pdf_key}"
+                
+                # Очистка локального PDF
+                try:
+                    os.unlink(pdf_path)
+                except:
+                    pass
+                
+                logger.info(f"✅ DWG→PDF: Success: {pdf_url}")
+                return jsonify({
+                    "success": True,
+                    "message": "DWG → PDF conversion successful",
+                    "pdf_url": pdf_url,
+                    "raw_url": raw_url,
+                    "file_info": {
+                        "original_filename": secure_filename(file.filename),
+                        "file_size": os.path.getsize(temp_file_path),
+                        "format": "DWG → PDF",
+                        "raw_location": raw_key,
+                        "processed_location": pdf_key
+                    }
+                })
+            else:
+                logger.error("❌ DWG→PDF: Conversion failed")
+                return jsonify({
+                    "success": False,
+                    "message": "Failed to convert DWG to PDF",
+                    "raw_url": raw_url
+                }), 500
+                
+        finally:
+            # Удаляем временные файлы
+            try:
+                os.unlink(temp_file_path)
+                logger.info("🗑️ Temporary DWG file cleaned up")
+            except Exception as e:
+                logger.warning(f"Failed to clean up temporary file: {e}")
+    
+    except Exception as e:
+        logger.exception(f"❌ DWG→PDF: Exception in upload endpoint: {e}")
+        return jsonify({
+            "success": False,
+            "message": "Failed to process DWG file"
+        }), 500
+
+@app.route('/', methods=['POST'])
+def webhook():
+    if application is None or _background_loop is None:
+        if not init_bot():
+            return jsonify({"error":"init failed"}), 500
+    upd = request.get_json()
+    if not upd or 'update_id' not in upd:
+        return jsonify({"status":"OK"})
+    update = Update.de_json(upd, application.bot)
+    if update:
+        _run_coro(application.process_update(update))
+    return jsonify({"status":"OK"})
+
+if __name__ == '__main__':
+    port = int(os.getenv('PORT', '8080'))
+    app.run(host='0.0.0.0', port=port)
