@@ -17,6 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копирование приложения
 COPY app.py .
 COPY dwg_converter.py .
+COPY gcs_queue_manager.py .
 
 # Создание пользователя
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app

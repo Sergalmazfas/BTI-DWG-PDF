@@ -369,56 +369,56 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 pdf_path = convert_dwg_to_pdf(temp_path)
                 
                 if pdf_path and os.path.exists(pdf_path):
-                await update.message.reply_text("📤 Загружаю PDF в облако...")
+                    await update.message.reply_text("📤 Загружаю PDF в облако...")
+                    
+                    pdf_key = f"processed/{timestamp}/plan.pdf"
+                    pdf_blob = bucket.blob(pdf_key)
+                    pdf_blob.upload_from_filename(pdf_path)
+                    pdf_blob.make_public()
+                    pdf_url = f"https://storage.googleapis.com/btibot-processed/{pdf_key}"
                 
-                pdf_key = f"processed/{timestamp}/plan.pdf"
-                pdf_blob = bucket.blob(pdf_key)
-                pdf_blob.upload_from_filename(pdf_path)
-                pdf_blob.make_public()
-                pdf_url = f"https://storage.googleapis.com/btibot-processed/{pdf_key}"
-                
-                # Используем InlineKeyboardButton
-                keyboard = InlineKeyboardMarkup([
-                    [InlineKeyboardButton("📄 Скачать PDF", url=pdf_url)],
-                    [InlineKeyboardButton("📁 Скачать DWG (оригинал)", url=raw_url)],
-                    [InlineKeyboardButton("🏠 Главное меню", callback_data="back_to_menu")]
-                ])
-                
-                message = (
-                    "✅ DWG → PDF готово!\n\n"
-                    f"📦 Файл: {document.file_name}\n"
-                    f"📏 Размер: {document.file_size / 1024 / 1024:.2f} MB\n\n"
-                    "📄 PDF чертёж готов к печати\n"
-                    "📁 Исходный DWG сохранён\n"
-                    "🔗 Ссылки действуют 30 дней\n\n"
-                    "💡 Скачайте файлы по кнопкам ниже:"
-                )
-                
-                await update.message.reply_text(message, reply_markup=keyboard)
-                
-                logger.info(f"✅ DWG→PDF: Complete: {pdf_url}")
-                
-                # Очистка локального PDF
-                try:
-                    os.unlink(pdf_path)
-                except:
-                    pass
-            else:
-                # Ошибка конвертации
-                keyboard = InlineKeyboardMarkup([
-                    [InlineKeyboardButton("📁 Скачать DWG (оригинал)", url=raw_url)],
-                    [InlineKeyboardButton("🏠 Главное меню", callback_data="back_to_menu")]
-                ])
-                
-                message = (
-                    "❌ Не удалось обработать файл\n\n"
-                    "Файл передан чертёжнику для ручной обработки.\n\n"
-                    "📁 Исходный DWG сохранён - можете скачать\n"
-                    "📞 Свяжемся с вами в течение часа"
-                )
-                
-                await update.message.reply_text(message, reply_markup=keyboard)
-                logger.error(f"❌ DWG→PDF failed, fallback to manual")
+                    # Используем InlineKeyboardButton
+                    keyboard = InlineKeyboardMarkup([
+                        [InlineKeyboardButton("📄 Скачать PDF", url=pdf_url)],
+                        [InlineKeyboardButton("📁 Скачать DWG (оригинал)", url=raw_url)],
+                        [InlineKeyboardButton("🏠 Главное меню", callback_data="back_to_menu")]
+                    ])
+                    
+                    message = (
+                        "✅ DWG → PDF готово!\n\n"
+                        f"📦 Файл: {document.file_name}\n"
+                        f"📏 Размер: {document.file_size / 1024 / 1024:.2f} MB\n\n"
+                        "📄 PDF чертёж готов к печати\n"
+                        "📁 Исходный DWG сохранён\n"
+                        "🔗 Ссылки действуют 30 дней\n\n"
+                        "💡 Скачайте файлы по кнопкам ниже:"
+                    )
+                    
+                    await update.message.reply_text(message, reply_markup=keyboard)
+                    
+                    logger.info(f"✅ DWG→PDF: Complete: {pdf_url}")
+                    
+                    # Очистка локального PDF
+                    try:
+                        os.unlink(pdf_path)
+                    except:
+                        pass
+                else:
+                    # Ошибка конвертации
+                    keyboard = InlineKeyboardMarkup([
+                        [InlineKeyboardButton("📁 Скачать DWG (оригинал)", url=raw_url)],
+                        [InlineKeyboardButton("🏠 Главное меню", callback_data="back_to_menu")]
+                    ])
+                    
+                    message = (
+                        "❌ Не удалось обработать файл\n\n"
+                        "Файл передан чертёжнику для ручной обработки.\n\n"
+                        "📁 Исходный DWG сохранён - можете скачать\n"
+                        "📞 Свяжемся с вами в течение часа"
+                    )
+                    
+                    await update.message.reply_text(message, reply_markup=keyboard)
+                    logger.error(f"❌ DWG→PDF failed, fallback to manual")
         
         finally:
             # Удаляем временный файл
