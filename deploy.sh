@@ -10,7 +10,7 @@ echo "=================================================="
 
 # Переменные
 PROJECT_ID="talkhint"  # Замените на ваш проект
-SERVICE_NAME="bti-dwg-pdf"
+SERVICE_NAME="dwg-processor-metadata"  # Используем существующий сервис
 REGION="europe-west1"
 IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}"
 
@@ -32,9 +32,9 @@ gcloud run deploy ${SERVICE_NAME} \
   --max-instances 10 \
   --min-instances 0 \
   --concurrency 1 \
-  --set-env-vars="GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GCS_BUCKET=btibot-processed" \
-  --set-secrets="BOT_TOKEN=BOT_TOKEN:latest" \
-  --service-account="bti-dwg-pdf-sa@${PROJECT_ID}.iam.gserviceaccount.com"
+  --set-env-vars="GCS_BUCKET=btibot-processed,GCP_PROJECT_ID=${PROJECT_ID}" \
+  --set-secrets="BOT_TOKEN=BOT_TOKEN:latest,FORGE_CLIENT_ID=FORGE_CLIENT_ID:latest,FORGE_CLIENT_SECRET=FORGE_CLIENT_SECRET:latest" \
+  --service-account="637190449180-compute@developer.gserviceaccount.com"
 
 echo "✅ BTI DWG → PDF Converter deployed successfully!"
 echo "🔗 Service URL: https://${SERVICE_NAME}-${PROJECT_ID}.${REGION}.run.app"

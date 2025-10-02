@@ -2,6 +2,8 @@
 
 Telegram bot для конвертации DWG файлов в PDF формат.
 
+🚀 **Деплой успешно переведен на Cloud Run сервис `dwg-processor-metadata`**
+
 ## Возможности
 
 - 📐 Конвертация DWG файлов в PDF

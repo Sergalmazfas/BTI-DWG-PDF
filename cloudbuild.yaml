@@ -1,21 +1,21 @@
 steps:
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/bti-dwg-pdf:latest', '.']
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/dwg-processor-metadata:latest', '.']
   
   # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/bti-dwg-pdf:latest']
+    args: ['push', 'gcr.io/$PROJECT_ID/dwg-processor-metadata:latest']
   
-  # Deploy container image to Cloud Run
+  # Deploy container image to Cloud Run (existing service)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
       - 'run'
       - 'deploy'
-      - 'bti-dwg-pdf'
+      - 'dwg-processor-metadata'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/bti-dwg-pdf:latest'
+      - 'gcr.io/$PROJECT_ID/dwg-processor-metadata:latest'
       - '--region'
       - 'europe-west1'
       - '--platform'
@@ -32,13 +32,13 @@ steps:
       - '--min-instances'
       - '0'
       - '--concurrency'
-      - '1'
+      - '160'
       - '--service-account'
-      - 'bti-dwg-pdf-sa@$PROJECT_ID.iam.gserviceaccount.com'
+      - '637190449180-compute@developer.gserviceaccount.com'
       - '--set-env-vars'
-      - 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GCS_BUCKET=btibot-processed'
+      - 'GCS_BUCKET=btibot-processed,GCP_PROJECT_ID=$PROJECT_ID'
       - '--set-secrets'
-      - 'BOT_TOKEN=BOT_TOKEN:latest'
+      - 'BOT_TOKEN=BOT_TOKEN:latest,FORGE_CLIENT_ID=FORGE_CLIENT_ID:latest,FORGE_CLIENT_SECRET=FORGE_CLIENT_SECRET:latest'
 
 images:
-  - 'gcr.io/$PROJECT_ID/bti-dwg-pdf:latest'
+  - 'gcr.io/$PROJECT_ID/dwg-processor-metadata:latest'
