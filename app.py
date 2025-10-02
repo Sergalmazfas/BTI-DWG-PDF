@@ -11,6 +11,7 @@ import asyncio
 import threading
 import tempfile
 import time
+import base64
 from datetime import datetime
 from typing import Dict
 
@@ -76,6 +77,34 @@ def validate_file(file):
         return False, "Empty file"
     
     return True, "File is valid"
+
+def parse_pubsub_message(data):
+    """Парсит Pub/Sub сообщение и извлекает данные о файле"""
+    try:
+        if 'message' in data:
+            message = data['message']
+            
+            if 'data' in message:
+                encoded_data = message['data']
+                decoded_data = base64.b64decode(encoded_data).decode('utf-8')
+                gcs_data = json.loads(decoded_data)
+                
+                bucket = gcs_data.get('bucket')
+                name = gcs_data.get('name')
+                generation = gcs_data.get('generation')
+                
+                logger.info(f"📦 Parsed GCS data: bucket={bucket}, name={name}, generation={generation}")
+                return bucket, name, generation
+            else:
+                logger.warning("❌ No 'data' field in Pub/Sub message")
+                return None, None, None
+        else:
+            logger.warning("❌ No 'message' field in Pub/Sub data")
+            return None, None, None
+            
+    except Exception as e:
+        logger.error(f"❌ Error parsing Pub/Sub message: {e}")
+        return None, None, None
 
 def _start_background_loop():
     global _background_loop, _loop_thread
@@ -432,7 +461,8 @@ def status():
             "upload": "/upload",
             "health": "/health",
             "status": "/status",
-            "webhook": "/"
+            "webhook": "/",
+            "gcs_push": "/gcs/push"
         }
     })
 
@@ -558,6 +588,89 @@ def upload_file():
         return jsonify({
             "success": False,
             "message": "Failed to process DWG file"
+        }), 500
+
+@app.route('/gcs/push', methods=['POST'])
+def gcs_push():
+    """Endpoint для Pub/Sub push notifications"""
+    try:
+        logger.info("🚀 GCS Push notification received")
+        
+        # Парсим Pub/Sub сообщение
+        data = request.get_json()
+        if not data:
+            logger.warning("❌ No JSON data in request")
+            return jsonify({"status": "error", "reason": "no_data"}), 400
+        
+        logger.info(f"📨 Received Pub/Sub data: {json.dumps(data, indent=2)}")
+        
+        # Извлекаем данные о файле
+        bucket, name, generation = parse_pubsub_message(data)
+        
+        if not bucket or not name:
+            logger.warning(f"❌ Missing bucket or name: bucket={bucket}, name={name}")
+            return jsonify({"status": "error", "reason": "missing_bucket_or_name"}), 400
+        
+        logger.info(f"📦 Processing file: gs://{bucket}/{name}")
+        
+        # Проверяем что это DWG файл в папке raw/
+        if not name.endswith('.dwg') or not name.startswith('raw/'):
+            logger.info(f"⏭️ Skipping non-DWG file: {name}")
+            return jsonify({"status": "skipped", "reason": "not_dwg"})
+        
+        # Обрабатываем DWG файл
+        logger.info(f"✅ DWG file detected: {name}")
+        
+        # Скачиваем файл из GCS
+        gcs_client = storage.Client()
+        bucket_obj = gcs_client.bucket(bucket)
+        blob = bucket_obj.blob(name)
+        
+        # Создаем временный файл
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.dwg') as temp_file:
+            blob.download_to_filename(temp_file.name)
+            temp_path = temp_file.name
+        
+        try:
+            # Конвертируем DWG → PDF
+            pdf_path = convert_dwg_to_pdf(temp_path)
+            
+            if pdf_path and os.path.exists(pdf_path):
+                # Загружаем PDF обратно в GCS
+                timestamp = int(time.time())
+                pdf_key = f"processed/{timestamp}/plan.pdf"
+                pdf_blob = bucket_obj.blob(pdf_key)
+                pdf_blob.upload_from_filename(pdf_path)
+                pdf_blob.make_public()
+                pdf_url = f"https://storage.googleapis.com/{bucket}/{pdf_key}"
+                
+                logger.info(f"✅ DWG processing successful: {pdf_url}")
+                return jsonify({
+                    "status": "success", 
+                    "message": f"DWG file {name} processed successfully",
+                    "pdf_url": pdf_url
+                })
+            else:
+                logger.error("❌ DWG processing failed: conversion failed")
+                return jsonify({
+                    "status": "error",
+                    "message": "DWG processing failed: conversion failed"
+                }), 500
+                
+        finally:
+            # Удаляем временные файлы
+            try:
+                os.unlink(temp_path)
+                if pdf_path and os.path.exists(pdf_path):
+                    os.unlink(pdf_path)
+            except:
+                pass
+                
+    except Exception as e:
+        logger.exception(f"❌ Error in gcs_push endpoint: {e}")
+        return jsonify({
+            "status": "error",
+            "message": f"Internal server error: {str(e)}"
         }), 500
 
 @app.route('/', methods=['POST'])
