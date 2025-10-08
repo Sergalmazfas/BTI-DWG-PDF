@@ -102,6 +102,8 @@ class GCSQueueManager:
             Job data или None если очередь пуста или заблокирована
         """
         try:
+            logger.info("🔍 get_next_job() called")
+            logger.info("🔍 Checking lock status...")
             # Проверяем lock-файл
             if self._is_processing_locked():
                 logger.info("🔒 Processing is locked, skipping queue")
@@ -118,11 +120,15 @@ class GCSQueueManager:
             oldest_file = queue_files[0]
             
             # Читаем данные задания
+            logger.info(f"📄 Reading job file: {oldest_file}")
             blob = self.bucket.blob(f"{self.queue_path}{oldest_file}")
             job_data = json.loads(blob.download_as_text())
+            logger.info(f"📋 Job data loaded: {job_data}")
             
             # Создаем lock-файл
+            logger.info(f"🔒 Creating lock for job: {job_data['job_id']}")
             self._create_processing_lock(job_data["job_id"])
+            logger.info(f"✅ Lock created successfully")
             
             logger.info(f"🚀 Processing job: {job_data['job_id']}")
             return job_data
@@ -158,8 +164,8 @@ class GCSQueueManager:
             done_blob = self.bucket.blob(done_file)
             done_blob.upload_from_string(json.dumps(job_data, indent=2))
             
-            # Удаляем из /queue/
-            source_blob.delete()
+            # Безопасно удаляем из /queue/
+            self._safe_delete_blob(source_blob)
             
             # Удаляем lock-файл
             self._remove_processing_lock()
@@ -197,8 +203,8 @@ class GCSQueueManager:
             done_blob = self.bucket.blob(done_file)
             done_blob.upload_from_string(json.dumps(job_data, indent=2))
             
-            # Удаляем из /queue/
-            source_blob.delete()
+            # Безопасно удаляем из /queue/
+            self._safe_delete_blob(source_blob)
             
             # Удаляем lock-файл
             self._remove_processing_lock()
@@ -213,8 +219,11 @@ class GCSQueueManager:
     def _is_processing_locked(self) -> bool:
         """Проверяет, заблокирована ли обработка"""
         try:
+            logger.info(f"🔍 Checking lock file: {self.lock_file}")
             blob = self.bucket.blob(self.lock_file)
-            return blob.exists()
+            exists = blob.exists()
+            logger.info(f"🔍 Lock file exists: {exists}")
+            return exists
         except Exception as e:
             logger.error(f"❌ Error checking lock: {e}")
             return False
@@ -245,6 +254,17 @@ class GCSQueueManager:
                 logger.info("🔓 Processing lock removed")
         except Exception as e:
             logger.error(f"❌ Error removing lock: {e}")
+    
+    def _safe_delete_blob(self, blob):
+        """Безопасно удаляет blob с проверкой существования"""
+        try:
+            if blob.exists():
+                blob.delete()
+                logger.info(f"✅ Deleted blob: {blob.name}")
+            else:
+                logger.warning(f"⚠️ Blob does not exist, skipping deletion: {blob.name}")
+        except Exception as e:
+            logger.error(f"❌ Error deleting blob {blob.name}: {e}")
     
     def _list_queue_files(self) -> List[str]:
         """Получает список файлов в очереди"""
