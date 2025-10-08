@@ -1,0 +1,13 @@
+{
+  "activityId": "AutoCAD.PlotToPDF+25_0",
+  "arguments": {
+    "HostDwg": {
+      "url": "https://storage.googleapis.com/btibot-queue/test_input/basmannyi_test_20251008_130414.zip?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100417Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=2627ae68957e6efcd50375cb0cec37d8a920887d51ef28ae808ca0feb1ef283381fc5043807380768cb9da560f52614dc950614fefe5d780158066b21086ef0b1565b3069ae935f7b148df023046fd8feef5a04e2c1a03fee407425e80be2f351e9159413a2ce43acd2e3f4afe83bce729dcb48992dedd212dd19af24a5b65dfcee48acbb7c37ca3321ddfc8258ae68c74eb0990fc64f0a0f8eabcf61edd0a8e3a49e5ccfdebfd88d0faf039ebb0c53c4d66a3a80e1d7b90a956ae19fbac7fe209b39c23a4c775d9c7d9de85793dd96cbc47ce83affca7e136e95aa135ddb5ea9c46eba51024528bbb8637d5471fe384a377b9c685c9b6abedb99aea7d201468",
+      "verb": "get"
+    },
+    "Result": {
+      "url": "https://storage.googleapis.com/btibot-processed/test_output/basmannyi_result_20251008_130414.dwg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100417Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=content-type%3Bhost&X-Goog-Signature=83c3bc95d2e9204adce5a3b66155614dc8f0303685b87baa3faf977f9a2f427f327288a6af81401db979cae42e624581d43128cd0222c2789fe50a111af06cd14157b9e49a49054639e4688bd8153de58e24a2b122e096b14a1da1b8897ab269a68a2a11e7a6475d4983c43c9124280dfa6e216fb16c40221982316aec9d4f2e6ff2a8e2b0c6b0b454a37f2f3991d0483d796ae9dcc5d846f6a1ce68146fd68822e0ad3ecf41c25e9415de153f2b3042e09cbba0914f7f7e7cac3f67fae4c9d4a83c98ab2518b972899a4529f52bbc086a73716e2bc01310f0043cb48fc82edb7b01447321ba606bbc743a6b0af6c4582930e6eb82f6162221f26e0d826d2f40",
+      "verb": "put"
+    }
+  }
+}

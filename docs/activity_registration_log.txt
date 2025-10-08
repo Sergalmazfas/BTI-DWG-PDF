@@ -1,0 +1,70 @@
+╔==============================================================================╗
+║                    🤖 Activity & Alias Registration                          ║
+╚==============================================================================╝
+
+================================================================================
+🔑 1️⃣ Получение OAuth токена (scope: code:all)
+================================================================================
+✅ Токен получен
+   Expires in: 3599s
+   Scope: code:all ✅
+
+📌 Nickname: BotBti
+
+================================================================================
+🔍 Проверка существования Activity: BotBti.BTEInsertTemplate
+================================================================================
+⚠️  Ошибка проверки: 400
+{"id":["Cannot parse id."]}
+
+================================================================================
+🚀 2️⃣ Создание Activity: BTEInsertTemplate
+================================================================================
+📋 Activity Configuration:
+   ID: BTEInsertTemplate
+   Engine: Autodesk.AutoCAD+25_0
+   AppBundle: BotBti.BTEInsertTemplate+1
+   Command: INSERTBTE → QSAVE → QUIT
+
+Payload:
+{
+  "id": "BTEInsertTemplate",
+  "commandLine": [
+    "$(engine.path)\\accoreconsole.exe /i \"$(args[inputFile].path)\" /al \"$(appbundles[BTEInsertTemplate].path)\" /s \"$(settings[script].path)\""
+  ],
+  "parameters": {
+    "inputFile": {
+      "verb": "get",
+      "description": "Input DWG file",
+      "localName": "Input.dwg",
+      "required": true
+    },
+    "result": {
+      "verb": "put",
+      "description": "Result DWG file with BTE template inserted",
+      "localName": "Result.dwg",
+      "required": true
+    }
+  },
+  "engine": "Autodesk.AutoCAD+25_0",
+  "appbundles": [
+    "BotBti.BTEInsertTemplate+1"
+  ],
+  "settings": {
+    "script": {
+      "value": "(command \"INSERTBTE\")\n(command \"QSAVE\")\n(command \"QUIT\")\n"
+    }
+  },
+  "description": "Inserts BTE template into DWG and saves drawing"
+}
+
+⚠️  Activity уже существует (409 Conflict)
+   Попытка получить существующую Activity...
+
+================================================================================
+🔍 Проверка существования Activity: BotBti.BTEInsertTemplate
+================================================================================
+⚠️  Ошибка проверки: 400
+{"id":["Cannot parse id."]}
+
+❌ Не удалось создать Activity
