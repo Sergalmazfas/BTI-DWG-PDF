@@ -1,0 +1,170 @@
+================================================================================
+🧩 AppBundle WorkItem Test
+================================================================================
+📂 DWG файл: bte-appbundle/archives/basmannyi_novyi_obmernyi.dwg (52420 bytes)
+📦 Создание ZIP архива: bte-appbundle/archives/basmannyi_test_20251008_130338.zip
+✅ ZIP архив создан: 43459 bytes
+☁️  Загрузка в GCS: gs://btibot-queue/test_input/basmannyi_test_20251008_130338.zip
+✅ Файл загружен в GCS
+🔗 Генерация signed URLs...
+🔑 Использование service account key: /Users/seregaboss/BTI-DWG-PDF-1/bte-appbundle/dwg-processor-sa-key.json
+✅ Input URL: https://storage.googleapis.com/btibot-queue/test_input/basmannyi_test_20251008_1...
+✅ Output URL: https://storage.googleapis.com/btibot-processed/test_output/basmannyi_result_202...
+📝 WorkItem payload сохранён: bte-appbundle/workitems/workitem_basmannyi_20251008_130338.json
+🔑 Получение токена доступа APS...
+✅ Токен получен (expires in 3599s)
+🚀 Создание WorkItem...
+📋 Payload: {
+  "activityId": "AutoCAD.PlotToPDF+25_0",
+  "arguments": {
+    "HostDWG": {
+      "url": "https://storage.googleapis.com/btibot-queue/test_input/basmannyi_test_20251008_130338.zip?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100341Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=095ee14718379b4d77a4f8bea237f2826d3a05a70999fd9367553312fdc8b14791d1e82c91ccd609d5621eef67eaf07bf27313e634e37cf7b45d776c742ae5d85c73b8c122047faf51676f3597c7d37e2ae654f064fff802a9f48ebbfe96d7477ace667440e26a096ec90852a93528341944d5ca7bd40eb42b30640b80ab22607055a115882bede0a86098c8ce9696ee7af8a48d92737e9b0d70c2207bbc62c52e71d1e7e3b58a52687bb42d447602551adfa8b3eec2a168e5a6dcf237038fc0b1ff65f5fa45edb4db3b753120d6052776c026e906f4e34a2401e19d14b6ce1a09158e5ee331c168059cab4e511b5c03b84c672a6571cc6e62671d5cf22777b1",
+      "verb": "get"
+    },
+    "ResultDWG": {
+      "url": "https://storage.googleapis.com/btibot-processed/test_output/basmannyi_result_20251008_130338.dwg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100341Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=content-type%3Bhost&X-Goog-Signature=7acfd577627b3e9c8c678b9157a9032acbd9e2fc38dbc3ef3e06c4466824c0a0e48fef01d6224d24890ec85a86bc100a6c92fd23fafa51f5ff3533deb146b9cb391ee29d351bae94354878e55359ecd1d9a61b49f2fa4f939b3572538a712e7d27c5ee4e0b03a8975642a80360616eba44c2f1456772df1390cf1d83ec0f5d4e0aa683c4c43f2b7f7eae8a4717d6f299a71bffd59d4165d81abd1d6c02aaf50e6d3f6245c46543122d370eb051687e0bba227c8334f416382176def9b6d556d267a19e4cff89d7ff18b22083e02da048ae976aef35f01232466dd2c222c36a274b38612417c133a58e7ee83a52123e47b567ede3cfca1c30c0e45368f348dcfc",
+      "verb": "put"
+    }
+  }
+}
+❌ Ошибка создания WorkItem: 400
+{"HostDwg":["Required parameter 'HostDwg' has no matching argument. (Parameter 'HostDwg')"]}
+================================================================================
+🧩 AppBundle WorkItem Test
+================================================================================
+📂 DWG файл: bte-appbundle/archives/basmannyi_novyi_obmernyi.dwg (52420 bytes)
+📦 Создание ZIP архива: bte-appbundle/archives/basmannyi_test_20251008_130414.zip
+✅ ZIP архив создан: 43459 bytes
+☁️  Загрузка в GCS: gs://btibot-queue/test_input/basmannyi_test_20251008_130414.zip
+✅ Файл загружен в GCS
+🔗 Генерация signed URLs...
+🔑 Использование service account key: /Users/seregaboss/BTI-DWG-PDF-1/bte-appbundle/dwg-processor-sa-key.json
+✅ Input URL: https://storage.googleapis.com/btibot-queue/test_input/basmannyi_test_20251008_1...
+✅ Output URL: https://storage.googleapis.com/btibot-processed/test_output/basmannyi_result_202...
+📝 WorkItem payload сохранён: bte-appbundle/workitems/workitem_basmannyi_20251008_130414.json
+🔑 Получение токена доступа APS...
+✅ Токен получен (expires in 3599s)
+🚀 Создание WorkItem...
+📋 Payload: {
+  "activityId": "AutoCAD.PlotToPDF+25_0",
+  "arguments": {
+    "HostDwg": {
+      "url": "https://storage.googleapis.com/btibot-queue/test_input/basmannyi_test_20251008_130414.zip?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100417Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=2627ae68957e6efcd50375cb0cec37d8a920887d51ef28ae808ca0feb1ef283381fc5043807380768cb9da560f52614dc950614fefe5d780158066b21086ef0b1565b3069ae935f7b148df023046fd8feef5a04e2c1a03fee407425e80be2f351e9159413a2ce43acd2e3f4afe83bce729dcb48992dedd212dd19af24a5b65dfcee48acbb7c37ca3321ddfc8258ae68c74eb0990fc64f0a0f8eabcf61edd0a8e3a49e5ccfdebfd88d0faf039ebb0c53c4d66a3a80e1d7b90a956ae19fbac7fe209b39c23a4c775d9c7d9de85793dd96cbc47ce83affca7e136e95aa135ddb5ea9c46eba51024528bbb8637d5471fe384a377b9c685c9b6abedb99aea7d201468",
+      "verb": "get"
+    },
+    "Result": {
+      "url": "https://storage.googleapis.com/btibot-processed/test_output/basmannyi_result_20251008_130414.dwg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100417Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=content-type%3Bhost&X-Goog-Signature=83c3bc95d2e9204adce5a3b66155614dc8f0303685b87baa3faf977f9a2f427f327288a6af81401db979cae42e624581d43128cd0222c2789fe50a111af06cd14157b9e49a49054639e4688bd8153de58e24a2b122e096b14a1da1b8897ab269a68a2a11e7a6475d4983c43c9124280dfa6e216fb16c40221982316aec9d4f2e6ff2a8e2b0c6b0b454a37f2f3991d0483d796ae9dcc5d846f6a1ce68146fd68822e0ad3ecf41c25e9415de153f2b3042e09cbba0914f7f7e7cac3f67fae4c9d4a83c98ab2518b972899a4529f52bbc086a73716e2bc01310f0043cb48fc82edb7b01447321ba606bbc743a6b0af6c4582930e6eb82f6162221f26e0d826d2f40",
+      "verb": "put"
+    }
+  }
+}
+✅ WorkItem создан: cc3e4a02574645f082af4e48c60eaac4
+📊 Статус: pending
+⏳ Ожидание завершения WorkItem (timeout: 300s)...
+📊 Статус: inprogress (прошло 0s)
+📊 Статус: failedInstructions (прошло 6s)
+❌ WorkItem завершился с ошибкой (failedInstructions)
+📝 Результат WorkItem сохранён: bte-appbundle/reports/workitem_result_20251008_130414.json
+📥 Скачивание отчёта...
+✅ Отчёт сохранён: bte-appbundle/reports/basmannyi_report_20251008_130414.log
+
+================================================================================
+📋 Отчёт WorkItem:
+================================================================================
+[10/08/2025 10:04:18] Job information:
+{
+  "CommandLine": [
+    "$(engine.path)\\accoreconsole.exe /i \"$(args[HostDwg].path)\" /s $(settings[script].path) /suppressGraphics"
+  ],
+  "Settings": {
+    "script": {
+      "value": "_tilemode 0 -export _pdf _all result.pdf\n"
+    },
+    "dasOpenNetwork": {
+      "value": "true",
+      "isEnvironmentVariable": true
+    }
+  },
+  "Id": "cc3e4a02574645f082af4e48c60eaac4",
+  "ActivityId": "AutoCAD.PlotToPDF+25_0",
+  "EngineId": "Autodesk.AutoCAD_25_0!39",
+  "Apps": [],
+  "BoundArguments": {
+    "HostDwg": {
+      "localName": "$(HostDwg)",
+      "url": "https://storage.googleapis.com/Masked:uuPvxDmcqAX5lq8RlrcEzLOKJ0M=",
+      "verb": "get"
+    },
+    "Result": {
+      "localName": "result.pdf",
+      "url": "https://storage.googleapis.com/Masked:WDdQJl8IUU97uWjb3lLmytIM6CA=",
+      "verb": "put"
+    }
+  },
+  "Quotas": {
+    "limitProcessingTimeSec": 100,
+    "limitTotalUncompressedAppsSizeInMB": 500
+  }
+}
+[10/08/2025 10:04:18] Starting work item cc3e4a02574645f082af4e48c60eaac4
+[10/08/2025 10:04:18] Start download phase.
+[10/08/2025 10:04:18] Start downloading input: verb - 'Get', url - 'https://storage.googleapis.com/btibot-queue/test_input/basmannyi_test_20251008_130414.zip?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100417Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=2627ae68957e6efcd50375cb0cec37d8a920887d51ef28ae808ca0feb1ef283381fc5043807380768cb9da560f52614dc950614fefe5d780158066b21086ef0b1565b3069ae935f7b148df023046fd8feef5a04e2c1a03fee407425e80be2f351e9159413a2ce43acd2e3f4afe83bce729dcb48992dedd212dd19af24a5b65dfcee48acbb7c37ca3321ddfc8258ae68c74eb0990fc64f0a0f8eabcf61edd0a8e3a49e5ccfdebfd88d0faf039ebb0c53c4d66a3a80e1d7b90a956ae19fbac7fe209b39c23a4c775d9c7d9de85793dd96cbc47ce83affca7e136e95aa135ddb5ea9c46eba51024528bbb8637d5471fe384a377b9c685c9b6abedb99aea7d201468'
+[10/08/2025 10:04:19] End downloading file. Source=https://storage.googleapis.com/btibot-queue/test_input/basmannyi_test_20251008_130414.zip?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100417Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=2627ae68957e6efcd50375cb0cec37d8a920887d51ef28ae808ca0feb1ef283381fc5043807380768cb9da560f52614dc950614fefe5d780158066b21086ef0b1565b3069ae935f7b148df023046fd8feef5a04e2c1a03fee407425e80be2f351e9159413a2ce43acd2e3f4afe83bce729dcb48992dedd212dd19af24a5b65dfcee48acbb7c37ca3321ddfc8258ae68c74eb0990fc64f0a0f8eabcf61edd0a8e3a49e5ccfdebfd88d0faf039ebb0c53c4d66a3a80e1d7b90a956ae19fbac7fe209b39c23a4c775d9c7d9de85793dd96cbc47ce83affca7e136e95aa135ddb5ea9c46eba51024528bbb8637d5471fe384a377b9c685c9b6abedb99aea7d201468,LocalFile=C:\DARoot\Jobs\cc3e4a02574645f082af4e48c60eaac4\basmannyi_test_20251008_130414.zip,BytesDownloaded=43459,Duration=139ms
+[10/08/2025 10:04:19] End download phase successfully.
+[10/08/2025 10:04:19] Start preparing script and command line parameters.
+[10/08/2025 10:04:19] Command line: [ /i "C:\DARoot\Jobs\cc3e4a02574645f082af4e48c60eaac4\basmannyi_test_20251008_130414.zip" /s C:\DARoot\Jobs\cc3e4a02574645f082af4e48c60eaac4\setting_script.scr /suppressGraphics]
+[10/08/2025 10:04:19] End preparing script and command line parameters.
+[10/08/2025 10:04:19] Start script phase.
+[10/08/2025 10:04:19] Start AutoCAD Core Engine standard output dump.
+[10/08/2025 10:04:19] Redirect stdout (file: C:\DARoot\Jobs\cc3e4a02574645f082af4e48c60eaac4\tmp\accc47202).
+[10/08/2025 10:04:19] AcCoreConsole: StdOutConsoleMode: processed-output: disabled,auto
+[10/08/2025 10:04:19] AutoCAD Core Engine Console - Copyright 2024 Autodesk, Inc.  All rights reserved. (V.101.Z.142)
+[10/08/2025 10:04:19] Execution Path:
+[10/08/2025 10:04:19] C:\DARoot\AcesRoot\25.0\coreEngine\Exe\accoreconsole.exe
+[10/08/2025 10:04:19] Current Directory: C:\DARoot\Jobs\cc3e4a02574645f082af4e48c60eaac4
+[10/08/2025 10:04:19] CER Report Directory: C:\DARoot\Jobs\cc3e4a02574645f082af4e48c60eaac4\ErrorReports
+[10/08/2025 10:04:19] Isolating to regkey=HKEY_CURRENT_USER\SOFTWARE\AppDataLow\Software\Autodesk\CoreUser\WorkItem_cc3e4a02574645f082af4e48c60eaac4, userDataFolder=C:\DARoot\Jobs\cc3e4a02574645f082af4e48c60eaac4\userdata.
+[10/08/2025 10:04:19] INFO: Isolation create time: 118 ms.
+[10/08/2025 10:04:19] Version Number: V.101.Z.142 (UNICODE)
+[10/08/2025 10:04:19] LogFilePath has been set to the working folder.
+[10/08/2025 10:04:19] ************************MessageBox****************************
+[10/08/2025 10:04:19] AutoCAD Message
+[10/08/2025 10:04:19] Cannot find the specified drawing file.
+[10/08/2025 10:04:19] Please verify that the file exists.
+[10/08/2025 10:04:19] >>>Responding: OK.
+[10/08/2025 10:04:19] **************************************************************
+[10/08/2025 10:04:19] ERROR: Something went wrong. ErrorStatus=76 (AcCoreConsole.cpp:1686).
+[10/08/2025 10:04:20] End AutoCAD Core Engine standard output dump.
+[10/08/2025 10:04:20] Error: Application accoreconsole.exe exits with code 76 which indicates an error.
+[10/08/2025 10:04:20] End script phase.
+[10/08/2025 10:04:20] Error: An unexpected error happened during phase CoreEngineExecution of job.
+[10/08/2025 10:04:21] Job finished with result FailedExecution
+[10/08/2025 10:04:21] Job Status:
+{
+  "status": "failedInstructions",
+  "reportUrl": "https://dasprod-store.s3.amazonaws.com/workItem/BotBti/cc3e4a02574645f082af4e48c60eaac4/report?X-Amz-Expires=8100&X-Amz-Security-Token=IQoJb3JpZ2luX2VjECIaCXVzLWVhc3QtMSJGMEQCIDv2TDT0LsAd88f3jeP9u%2FYD8L78TV%2Bl%2BBSkgC4gmcYtAiBpFWu9l2jRxe%2FpwVUAqEbTOy7%2BJX4WUHLFFDHdaW8knCqJAwi7%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F8BEAQaDDIyMDQ3MzE1MjMxMCIMs31apHLY469QMDiiKt0CXCKks%2FCx1du11SE1p48FEVIVF3E1127I8Prh5MQCUWFa88XHxANdiy1NmRhOfZwGWCjEGcjYT2BgDdhYeVm7DsGwtyBYsWditbsGLBKW%2BrhPNmFJAPVuPziWu8amgG%2Fa%2BI0nBEmN292xDtrPw8rksCnLxOYh2kUXUGTEjnFQcPXFObZ29uq1xwwl3XYSuOO7gBwh7J0GYWECqq7w9eWgaobWjc2CvPCSLd6gmXWR6y5LRZqM%2Fdiw9W8bOHa2cq6G%2Fmv05EwDiSGiL%2BTQkCFWVZGum2HGy5Ytn2V03DzMh4Q3KSMjGcmRoOsNI%2FL1FTQpwOREwzoiPwhYYbAH3q%2FQMSUXlEl%2FUD%2Bst90wlU%2B7t%2B%2FfduV03SOSZcuhRkyLkEG69CLJTewcdqdnR9IMTjDcFFUVH0Q9PlhXCneDmOSYx%2BAq%2BnNxDUlpbor7JR9ymLQwJrfQ5uTS6tm0XsZK8DDH6ZjHBjqfAbPF%2B1dUaODAeKCM1o48lwHOeNsKUdrgWPTsFCri4SLpnz30UHOKwGuz7ucfX30zFpMy35pWXZSgNDCp1KfCGaRdvk%2BnOXRyYgYmnDUzrFq%2FZt%2BeCfQOk%2FInyGi75ai4nVDfgDCqiFnvG6QPhY9huFlrCqPokVzVJROUSNXYAkIz57kL9ivtNrWG0Ia%2FX3yroySx%2BJlo%2FSeyxbV8p2ylYw%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIATGVJZKM3LKM72G4U%2F20251008%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251008T100418Z&X-Amz-SignedHeaders=host&X-Amz-Signature=cb5bc42a19407fa27eef46267fb62cf7d3f7f32dc6f5285e33e0f1a83197c709",
+  "activityId": "AutoCAD.PlotToPDF+25_0",
+  "stats": {
+    "timeQueued": "2025-10-08T10:04:18.7942834Z",
+    "timeDownloadStarted": "2025-10-08T10:04:18.9061742Z",
+    "timeInstructionsStarted": "2025-10-08T10:04:19.1153204Z",
+    "timeInstructionsEnded": "2025-10-08T10:04:20.8811699Z",
+    "bytesDownloaded": 43459
+  },
+  "id": "cc3e4a02574645f082af4e48c60eaac4"
+}
+
+================================================================================
+
+================================================================================
+🎯 ИТОГОВЫЙ СТАТУС: failedInstructions
+================================================================================
+❌ ТЕСТ ЗАВЕРШИЛСЯ С ОШИБКОЙ: failedInstructions
+📊 Stats: {
+  "timeQueued": "2025-10-08T10:04:18.7942834Z",
+  "timeDownloadStarted": "2025-10-08T10:04:18.9061742Z",
+  "timeInstructionsStarted": "2025-10-08T10:04:19.1153204Z",
+  "timeInstructionsEnded": "2025-10-08T10:04:20.8811699Z",
+  "timeFinished": "2025-10-08T10:04:21.2429883Z",
+  "bytesDownloaded": 43459
+}

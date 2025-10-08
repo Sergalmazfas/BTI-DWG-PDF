@@ -1,0 +1,82 @@
+[10/08/2025 10:04:18] Job information:
+{
+  "CommandLine": [
+    "$(engine.path)\\accoreconsole.exe /i \"$(args[HostDwg].path)\" /s $(settings[script].path) /suppressGraphics"
+  ],
+  "Settings": {
+    "script": {
+      "value": "_tilemode 0 -export _pdf _all result.pdf\n"
+    },
+    "dasOpenNetwork": {
+      "value": "true",
+      "isEnvironmentVariable": true
+    }
+  },
+  "Id": "cc3e4a02574645f082af4e48c60eaac4",
+  "ActivityId": "AutoCAD.PlotToPDF+25_0",
+  "EngineId": "Autodesk.AutoCAD_25_0!39",
+  "Apps": [],
+  "BoundArguments": {
+    "HostDwg": {
+      "localName": "$(HostDwg)",
+      "url": "https://storage.googleapis.com/Masked:uuPvxDmcqAX5lq8RlrcEzLOKJ0M=",
+      "verb": "get"
+    },
+    "Result": {
+      "localName": "result.pdf",
+      "url": "https://storage.googleapis.com/Masked:WDdQJl8IUU97uWjb3lLmytIM6CA=",
+      "verb": "put"
+    }
+  },
+  "Quotas": {
+    "limitProcessingTimeSec": 100,
+    "limitTotalUncompressedAppsSizeInMB": 500
+  }
+}
+[10/08/2025 10:04:18] Starting work item cc3e4a02574645f082af4e48c60eaac4
+[10/08/2025 10:04:18] Start download phase.
+[10/08/2025 10:04:18] Start downloading input: verb - 'Get', url - 'https://storage.googleapis.com/btibot-queue/test_input/basmannyi_test_20251008_130414.zip?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100417Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=2627ae68957e6efcd50375cb0cec37d8a920887d51ef28ae808ca0feb1ef283381fc5043807380768cb9da560f52614dc950614fefe5d780158066b21086ef0b1565b3069ae935f7b148df023046fd8feef5a04e2c1a03fee407425e80be2f351e9159413a2ce43acd2e3f4afe83bce729dcb48992dedd212dd19af24a5b65dfcee48acbb7c37ca3321ddfc8258ae68c74eb0990fc64f0a0f8eabcf61edd0a8e3a49e5ccfdebfd88d0faf039ebb0c53c4d66a3a80e1d7b90a956ae19fbac7fe209b39c23a4c775d9c7d9de85793dd96cbc47ce83affca7e136e95aa135ddb5ea9c46eba51024528bbb8637d5471fe384a377b9c685c9b6abedb99aea7d201468'
+[10/08/2025 10:04:19] End downloading file. Source=https://storage.googleapis.com/btibot-queue/test_input/basmannyi_test_20251008_130414.zip?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100417Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=2627ae68957e6efcd50375cb0cec37d8a920887d51ef28ae808ca0feb1ef283381fc5043807380768cb9da560f52614dc950614fefe5d780158066b21086ef0b1565b3069ae935f7b148df023046fd8feef5a04e2c1a03fee407425e80be2f351e9159413a2ce43acd2e3f4afe83bce729dcb48992dedd212dd19af24a5b65dfcee48acbb7c37ca3321ddfc8258ae68c74eb0990fc64f0a0f8eabcf61edd0a8e3a49e5ccfdebfd88d0faf039ebb0c53c4d66a3a80e1d7b90a956ae19fbac7fe209b39c23a4c775d9c7d9de85793dd96cbc47ce83affca7e136e95aa135ddb5ea9c46eba51024528bbb8637d5471fe384a377b9c685c9b6abedb99aea7d201468,LocalFile=C:\DARoot\Jobs\cc3e4a02574645f082af4e48c60eaac4\basmannyi_test_20251008_130414.zip,BytesDownloaded=43459,Duration=139ms
+[10/08/2025 10:04:19] End download phase successfully.
+[10/08/2025 10:04:19] Start preparing script and command line parameters.
+[10/08/2025 10:04:19] Command line: [ /i "C:\DARoot\Jobs\cc3e4a02574645f082af4e48c60eaac4\basmannyi_test_20251008_130414.zip" /s C:\DARoot\Jobs\cc3e4a02574645f082af4e48c60eaac4\setting_script.scr /suppressGraphics]
+[10/08/2025 10:04:19] End preparing script and command line parameters.
+[10/08/2025 10:04:19] Start script phase.
+[10/08/2025 10:04:19] Start AutoCAD Core Engine standard output dump.
+[10/08/2025 10:04:19] Redirect stdout (file: C:\DARoot\Jobs\cc3e4a02574645f082af4e48c60eaac4\tmp\accc47202).
+[10/08/2025 10:04:19] AcCoreConsole: StdOutConsoleMode: processed-output: disabled,auto
+[10/08/2025 10:04:19] AutoCAD Core Engine Console - Copyright 2024 Autodesk, Inc.  All rights reserved. (V.101.Z.142)
+[10/08/2025 10:04:19] Execution Path:
+[10/08/2025 10:04:19] C:\DARoot\AcesRoot\25.0\coreEngine\Exe\accoreconsole.exe
+[10/08/2025 10:04:19] Current Directory: C:\DARoot\Jobs\cc3e4a02574645f082af4e48c60eaac4
+[10/08/2025 10:04:19] CER Report Directory: C:\DARoot\Jobs\cc3e4a02574645f082af4e48c60eaac4\ErrorReports
+[10/08/2025 10:04:19] Isolating to regkey=HKEY_CURRENT_USER\SOFTWARE\AppDataLow\Software\Autodesk\CoreUser\WorkItem_cc3e4a02574645f082af4e48c60eaac4, userDataFolder=C:\DARoot\Jobs\cc3e4a02574645f082af4e48c60eaac4\userdata.
+[10/08/2025 10:04:19] INFO: Isolation create time: 118 ms.
+[10/08/2025 10:04:19] Version Number: V.101.Z.142 (UNICODE)
+[10/08/2025 10:04:19] LogFilePath has been set to the working folder.
+[10/08/2025 10:04:19] ************************MessageBox****************************
+[10/08/2025 10:04:19] AutoCAD Message
+[10/08/2025 10:04:19] Cannot find the specified drawing file.
+[10/08/2025 10:04:19] Please verify that the file exists.
+[10/08/2025 10:04:19] >>>Responding: OK.
+[10/08/2025 10:04:19] **************************************************************
+[10/08/2025 10:04:19] ERROR: Something went wrong. ErrorStatus=76 (AcCoreConsole.cpp:1686).
+[10/08/2025 10:04:20] End AutoCAD Core Engine standard output dump.
+[10/08/2025 10:04:20] Error: Application accoreconsole.exe exits with code 76 which indicates an error.
+[10/08/2025 10:04:20] End script phase.
+[10/08/2025 10:04:20] Error: An unexpected error happened during phase CoreEngineExecution of job.
+[10/08/2025 10:04:21] Job finished with result FailedExecution
+[10/08/2025 10:04:21] Job Status:
+{
+  "status": "failedInstructions",
+  "reportUrl": "https://dasprod-store.s3.amazonaws.com/workItem/BotBti/cc3e4a02574645f082af4e48c60eaac4/report?X-Amz-Expires=8100&X-Amz-Security-Token=IQoJb3JpZ2luX2VjECIaCXVzLWVhc3QtMSJGMEQCIDv2TDT0LsAd88f3jeP9u%2FYD8L78TV%2Bl%2BBSkgC4gmcYtAiBpFWu9l2jRxe%2FpwVUAqEbTOy7%2BJX4WUHLFFDHdaW8knCqJAwi7%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F8BEAQaDDIyMDQ3MzE1MjMxMCIMs31apHLY469QMDiiKt0CXCKks%2FCx1du11SE1p48FEVIVF3E1127I8Prh5MQCUWFa88XHxANdiy1NmRhOfZwGWCjEGcjYT2BgDdhYeVm7DsGwtyBYsWditbsGLBKW%2BrhPNmFJAPVuPziWu8amgG%2Fa%2BI0nBEmN292xDtrPw8rksCnLxOYh2kUXUGTEjnFQcPXFObZ29uq1xwwl3XYSuOO7gBwh7J0GYWECqq7w9eWgaobWjc2CvPCSLd6gmXWR6y5LRZqM%2Fdiw9W8bOHa2cq6G%2Fmv05EwDiSGiL%2BTQkCFWVZGum2HGy5Ytn2V03DzMh4Q3KSMjGcmRoOsNI%2FL1FTQpwOREwzoiPwhYYbAH3q%2FQMSUXlEl%2FUD%2Bst90wlU%2B7t%2B%2FfduV03SOSZcuhRkyLkEG69CLJTewcdqdnR9IMTjDcFFUVH0Q9PlhXCneDmOSYx%2BAq%2BnNxDUlpbor7JR9ymLQwJrfQ5uTS6tm0XsZK8DDH6ZjHBjqfAbPF%2B1dUaODAeKCM1o48lwHOeNsKUdrgWPTsFCri4SLpnz30UHOKwGuz7ucfX30zFpMy35pWXZSgNDCp1KfCGaRdvk%2BnOXRyYgYmnDUzrFq%2FZt%2BeCfQOk%2FInyGi75ai4nVDfgDCqiFnvG6QPhY9huFlrCqPokVzVJROUSNXYAkIz57kL9ivtNrWG0Ia%2FX3yroySx%2BJlo%2FSeyxbV8p2ylYw%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIATGVJZKM3LKM72G4U%2F20251008%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251008T100418Z&X-Amz-SignedHeaders=host&X-Amz-Signature=cb5bc42a19407fa27eef46267fb62cf7d3f7f32dc6f5285e33e0f1a83197c709",
+  "activityId": "AutoCAD.PlotToPDF+25_0",
+  "stats": {
+    "timeQueued": "2025-10-08T10:04:18.7942834Z",
+    "timeDownloadStarted": "2025-10-08T10:04:18.9061742Z",
+    "timeInstructionsStarted": "2025-10-08T10:04:19.1153204Z",
+    "timeInstructionsEnded": "2025-10-08T10:04:20.8811699Z",
+    "bytesDownloaded": 43459
+  },
+  "id": "cc3e4a02574645f082af4e48c60eaac4"
+}
