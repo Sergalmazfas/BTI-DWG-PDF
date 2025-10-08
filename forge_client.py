@@ -113,14 +113,15 @@ class ForgeClient:
             "Content-Type": "application/json"
         }
         
-        # Используем SimpleDWG2DWG_NoTemplate+v1 для DWG→DWG обработки
+        # Используем AutoCAD.PlotToPDF+25_0 (работает стабильно)
+        # SimpleDWG2DWG_NoTemplate+v1 имеет failedInstructions - нужен правильный AppBundle
         body = {
-            "activityId": "BotBti.SimpleDWG2DWG_NoTemplate+v1",
+            "activityId": "AutoCAD.PlotToPDF+25_0",
             "arguments": {
-                "inputFile": {"url": input_url},
-                "resultFile": {
+                "HostDwg": {"url": input_url},
+                "Result": {
                     "url": output_url,
-                    "verb": "post"  # Из официальной документации!
+                    "verb": "put"
                 }
             }
         }
