@@ -811,7 +811,11 @@ def process_dwg():
         bucket = gcs_client.bucket("btibot-processed")
         
         # Input URL (публичный, т.к. бакет публичный)
-        input_url = f"https://storage.googleapis.com/btibot-processed/{input_blob_path}"
+        # Проверяем, не содержит ли input_blob_path уже полный URL
+        if input_blob_path.startswith("https://"):
+            input_url = input_blob_path
+        else:
+            input_url = f"https://storage.googleapis.com/btibot-processed/{input_blob_path}"
         logger.info(f"📥 Input URL (public): {input_url}")
         
         # Output URL (signed для записи, БЕЗ content_type!)
@@ -1026,7 +1030,11 @@ def process_queue():
                     bucket = gcs_client.bucket("btibot-processed")
                     
                     # Input URL (публичный, т.к. бакет публичный)
-                    input_url = f"https://storage.googleapis.com/btibot-processed/{input_blob_path}"
+                    # Проверяем, не содержит ли input_blob_path уже полный URL
+                    if input_blob_path.startswith("https://"):
+                        input_url = input_blob_path
+                    else:
+                        input_url = f"https://storage.googleapis.com/btibot-processed/{input_blob_path}"
                     logger.info(f"📥 Input URL (public): {input_url}")
                     
                     # Output URL (signed для записи)
