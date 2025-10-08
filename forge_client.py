@@ -113,15 +113,14 @@ class ForgeClient:
             "Content-Type": "application/json"
         }
         
-        # Используем стандартную Activity AutoCAD.PlotToPDF (всегда работает)
-        # Для DWG→DWG используем SimpleDWG2DWG_NoTemplate+v1
+        # Используем SimpleDWG2DWG_NoTemplate+v1 для DWG→DWG обработки
         body = {
-            "activityId": "AutoCAD.PlotToPDF+25_0",  # Исправлено: был "Autodesk.AutoCAD+25"
+            "activityId": "BotBti.SimpleDWG2DWG_NoTemplate+v1",
             "arguments": {
-                "HostDwg": {"url": input_url},
-                "Result": {
+                "inputFile": {"url": input_url},
+                "resultFile": {
                     "url": output_url,
-                    "verb": "put"
+                    "verb": "post"  # Из официальной документации!
                 }
             }
         }
