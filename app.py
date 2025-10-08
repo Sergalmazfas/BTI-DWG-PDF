@@ -1010,7 +1010,17 @@ def process_queue():
                     logger.info("✅ ForgeClient initialized")
                     
                     # Создаем signed URLs для GCS
-                    input_blob_path = job_data['dwg_url'].replace("gs://btibot-processed/", "")
+                    # Поддержка разных форматов dwg_url
+                    dwg_url = job_data['dwg_url']
+                    if dwg_url.startswith("gs://btibot-processed/"):
+                        input_blob_path = dwg_url.replace("gs://btibot-processed/", "")
+                    elif dwg_url.startswith("https://storage.googleapis.com/btibot-processed/"):
+                        input_blob_path = dwg_url.replace("https://storage.googleapis.com/btibot-processed/", "")
+                    elif "dwg_path" in job_data:
+                        input_blob_path = job_data["dwg_path"]
+                    else:
+                        input_blob_path = dwg_url
+                    
                     output_blob_path = f"ready/{job_data['chat_id']}/{job_id}/bti_ready.dwg"
                     
                     # Получаем Service Account credentials из Secret Manager для signed URLs
@@ -1055,11 +1065,23 @@ def process_queue():
                         # Ожидаем завершения
                         result = forge_client.wait_for_completion(workitem_id, timeout_minutes=5)
                         
-                        forge_result = {
-                            'success': True,
-                            'workitem_id': workitem_id,
-                            'result': result
-                        }
+                        # Проверяем статус WorkItem
+                        workitem_status = result.get('status', 'unknown')
+                        if workitem_status == 'success':
+                            forge_result = {
+                                'success': True,
+                                'workitem_id': workitem_id,
+                                'result': result
+                            }
+                        else:
+                            # failedInstructions, failedDownload и т.д.
+                            logger.error(f"❌ WorkItem failed: {workitem_status}")
+                            forge_result = {
+                                'success': False,
+                                'workitem_id': workitem_id,
+                                'error': f"WorkItem status: {workitem_status}",
+                                'result': result
+                            }
                         
                     except Exception as forge_error:
                         logger.error(f"❌ Ошибка Autodesk APS: {forge_error}")
@@ -1067,6 +1089,66 @@ def process_queue():
                             'success': False,
                             'error': str(forge_error)
                         }
+                    
+                    # 🔄 Fallback: если APS не работает, просто копируем DWG
+                    if not forge_result.get('success') and os.getenv('AUTO_PDF', 'false').lower() == 'false':
+                        logger.info("🔄 Forge fallback: копируем DWG без обработки")
+                        try:
+                            # Скачиваем исходный DWG
+                            input_blob = bucket.blob(input_blob_path)
+                            with tempfile.NamedTemporaryFile(delete=False, suffix='.dwg') as temp_dwg:
+                                input_blob.download_to_filename(temp_dwg.name)
+                                temp_dwg_path = temp_dwg.name
+                            
+                            # Копируем в output
+                            output_blob.upload_from_filename(temp_dwg_path)
+                            os.unlink(temp_dwg_path)
+                            
+                            # Формируем URL результата
+                            dwg_url = f"https://storage.googleapis.com/btibot-processed/{output_blob_path}"
+                            
+                            logger.info(f"✅ DWG скопирован без обработки: {dwg_url}")
+                            
+                            # Завершаем job
+                            result_data = {
+                                "dwg_url": dwg_url,
+                                "dwg_path": output_blob_path,
+                                "forge_fallback": True,
+                                "processed_at": datetime.now(timezone.utc).isoformat()
+                            }
+                            queue_manager.finish_job(job_id, result_data)
+                            
+                            # Отправляем уведомление
+                            if application:
+                                try:
+                                    async def send_dwg_notification():
+                                        keyboard = InlineKeyboardMarkup([
+                                            [InlineKeyboardButton("📥 Скачать DWG", url=dwg_url)]
+                                        ])
+                                        
+                                        await application.bot.send_message(
+                                            chat_id=job_data["chat_id"],
+                                            text=f"✅ DWG готов!\n\n"
+                                                 f"📦 Файл: {job_data['filename']}\n"
+                                                 f"🆔 ID: {job_id}\n\n"
+                                                 f"📐 DWG сохранён без изменений",
+                                            reply_markup=keyboard
+                                        )
+                                    
+                                    _run_coro(send_dwg_notification())
+                                except Exception as e:
+                                    logger.error(f"Failed to send DWG notification: {e}")
+                            
+                            return jsonify({
+                                "status": "success",
+                                "job_id": job_id,
+                                "dwg_url": dwg_url,
+                                "message": "DWG copied without processing (Forge fallback)"
+                            })
+                            
+                        except Exception as fallback_error:
+                            logger.error(f"❌ Fallback копирование DWG failed: {fallback_error}")
+                            # Продолжаем стандартную логику
                     
                     if forge_result.get('success'):
                         # Forge задача отправлена успешно

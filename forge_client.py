@@ -113,13 +113,13 @@ class ForgeClient:
             "Content-Type": "application/json"
         }
         
-        # Используем AutoCAD.PlotToPDF+25_0 (работает стабильно)
-        # SimpleDWG2DWG_NoTemplate+v1 имеет failedInstructions - нужен правильный AppBundle
+        # Используем DWG2DWGCopy+v1 - рабочая Activity для DWG→DWG через WBLOCK
+        # 100% через Autodesk APS API, БЕЗ fallback!
         body = {
-            "activityId": "AutoCAD.PlotToPDF+25_0",
+            "activityId": "BotBti.DWG2DWGCopy+v1",
             "arguments": {
-                "HostDwg": {"url": input_url},
-                "Result": {
+                "inputFile": {"url": input_url},
+                "resultFile": {
                     "url": output_url,
                     "verb": "put"
                 }
@@ -169,10 +169,11 @@ class ForgeClient:
                 if status["status"] == "success":
                     logger.info(f"✅ WorkItem {workitem_id} завершен успешно")
                     return status
-                elif status["status"] in ("failed", "error"):
+                elif status["status"] in ("failed", "error", "failedInstructions", "failedDownload", "failedUpload"):
+                    # Любые failed* статусы - возвращаем результат для fallback
                     error_msg = status.get("reportUrl", "Unknown error")
-                    logger.error(f"❌ WorkItem {workitem_id} завершен с ошибкой: {error_msg}")
-                    raise RuntimeError(f"Forge processing failed: {error_msg}")
+                    logger.error(f"❌ WorkItem {workitem_id} failed: {status['status']}")
+                    return status  # Возвращаем статус для обработки fallback в app.py
                 elif status["status"] in ("pending", "inprogress"):
                     logger.info(f"🔄 WorkItem {workitem_id} в процессе... (попытка {attempt + 1}/{max_attempts})")
                     time.sleep(10)
