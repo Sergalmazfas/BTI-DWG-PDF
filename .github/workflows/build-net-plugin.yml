@@ -1,0 +1,59 @@
+name: Build BTI .NET Plugin
+
+on:
+  workflow_dispatch:  # Ручной запуск
+  push:
+    paths:
+      - 'BTI_TemplateAppBundle/BTI_InsertBasman.cs'
+      - 'BTI_TemplateAppBundle/BTI_InsertBasman.csproj'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.1
+        
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v1
+        
+      - name: Restore NuGet packages
+        run: nuget restore BTI_TemplateAppBundle/BTI_InsertBasman.csproj
+        
+      - name: Build plugin
+        run: |
+          msbuild BTI_TemplateAppBundle/BTI_InsertBasman.csproj `
+            /p:Configuration=Release `
+            /p:Platform=x64 `
+            /v:minimal
+        
+      - name: Create bundle structure
+        run: |
+          New-Item -ItemType Directory -Path "bundle/BTI_InsertBasman.bundle/Contents" -Force
+          Copy-Item "BTI_TemplateAppBundle/bin/Release/BTI_InsertBasman.dll" "bundle/BTI_InsertBasman.bundle/Contents/"
+          Copy-Item "BTI_TemplateAppBundle/PackageContents_Basmann.xml" "bundle/BTI_InsertBasman.bundle/PackageContents.xml"
+        shell: pwsh
+        
+      - name: Create ZIP
+        run: |
+          Compress-Archive -Path "bundle/BTI_InsertBasman.bundle" -DestinationPath "BTI_InsertBasman.bundle.zip"
+        shell: pwsh
+        
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: BTI_InsertBasman_Bundle
+          path: BTI_InsertBasman.bundle.zip
+          
+      - name: Display success message
+        run: |
+          echo "✅ BTI_InsertBasman.dll скомпилирован!"
+          echo "✅ Bundle.zip создан!"
+          echo ""
+          echo "📥 Скачайте артефакт из Actions → BTI_InsertBasman_Bundle"
+          echo "📤 Загрузите в APS через upload_bti_appbundle.py"
+
