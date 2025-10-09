@@ -12,8 +12,10 @@ import threading
 import tempfile
 import time
 import base64
+import re
 from datetime import datetime, timezone, timedelta
 from typing import Dict
+from unidecode import unidecode
 
 # Third-party imports - Flask
 from flask import Flask, request, jsonify
@@ -120,6 +122,43 @@ def init_queue_manager():
     except Exception as e:
         logger.error(f"❌ Failed to initialize GCS Queue Manager: {e}")
         return False
+
+def normalize_filename(filename: str) -> str:
+    """
+    Нормализует имя файла: заменяет кириллицу на латиницу, 
+    пробелы на подчёркивания, удаляет спецсимволы.
+    
+    Args:
+        filename: Исходное имя файла (может содержать кириллицу)
+        
+    Returns:
+        Нормализованное имя файла (только латиница, цифры, точка, тире, подчёркивание)
+        
+    Examples:
+        >>> normalize_filename("Чертеж Басманная.dwg")
+        'Chertezh_Basmannaya.dwg'
+        >>> normalize_filename("План 2025-10-03.dwg")
+        'Plan_2025-10-03.dwg'
+    """
+    # Разделяем на имя и расширение
+    if '.' in filename:
+        name, ext = filename.rsplit('.', 1)
+    else:
+        name, ext = filename, ''
+    
+    # Транслитерация кириллицы в латиницу
+    normalized = unidecode(name)
+    
+    # Заменяем пробелы на подчёркивания
+    normalized = re.sub(r'\s+', '_', normalized)
+    
+    # Удаляем всё кроме букв, цифр, точек, тире и подчёркиваний
+    normalized = re.sub(r'[^A-Za-z0-9._-]', '', normalized)
+    
+    # Собираем обратно с расширением
+    if ext:
+        return f"{normalized}.{ext}"
+    return normalized
 
 def _start_background_loop():
     global _background_loop, _loop_thread
@@ -412,9 +451,16 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.info(f"📥 Файл скачан: {temp_path}")
         
         try:
+            # Нормализуем имя файла (кириллица → латиница)
+            original_filename = document.file_name
+            normalized_filename = normalize_filename(original_filename)
+            
+            if normalized_filename != original_filename:
+                logger.info(f"⚙️ Имя файла нормализовано: {original_filename} → {normalized_filename}")
+            
             # Сохраняем исходный DWG в GCS
             timestamp = int(time.time())
-            raw_key = f"raw/{timestamp}/{document.file_name}"
+            raw_key = f"raw/{timestamp}/{normalized_filename}"
             
             gcs_client = storage.Client()
             bucket = gcs_client.bucket("btibot-processed")
@@ -432,7 +478,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 job_data = {
                     "user_id": user_id,
                     "chat_id": update.effective_chat.id,
-                    "filename": document.file_name,
+                    "filename": normalized_filename,  # Используем нормализованное имя
                     "file_size": document.file_size,
                     "dwg_path": raw_key,
                     "dwg_url": raw_url,
@@ -443,21 +489,27 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 
                 # Проверяем, заблокирована ли обработка
                 if queue_manager._is_processing_locked():
-                    await update.message.reply_text(
+                    message_text = (
                         "📋 Файл добавлен в очередь обработки\n\n"
-                        f"📦 Файл: {document.file_name}\n"
+                        f"📦 Файл: {normalized_filename}\n"
                         f"🆔 ID задания: {job_id}\n\n"
                         "⏳ Обработка начнется после завершения предыдущего задания\n"
                         "📊 Текущий статус: В очереди"
                     )
+                    if normalized_filename != original_filename:
+                        message_text = f"✅ Имя файла нормализовано: {original_filename} → {normalized_filename}\n\n" + message_text
+                    await update.message.reply_text(message_text)
                 else:
-                    await update.message.reply_text(
+                    message_text = (
                         "✅ Файл принят. Запускаем обработку через Autodesk API…\n\n"
-                        f"📦 Файл: {document.file_name}\n"
+                        f"📦 Файл: {normalized_filename}\n"
                         f"🆔 ID задания: {job_id}\n\n"
-                        "⏳ Обрабатываю DWG через BTI_Template.dwt...\n"
+                        "⏳ Обрабатываю DWG через Autodesk APS API...\n"
                         "📊 Текущий статус: В работе"
                     )
+                    if normalized_filename != original_filename:
+                        message_text = f"⚙️ Имя файла нормализовано: {normalized_filename}\n\n" + message_text
+                    await update.message.reply_text(message_text)
             else:
                 # Fallback: прямая обработка без очереди
                 await update.message.reply_text(

@@ -113,8 +113,10 @@ class ForgeClient:
             "Content-Type": "application/json"
         }
         
-        # Используем DWG2DWGCopy+v1 - рабочая Activity для DWG→DWG через WBLOCK
+        # Используем DWG2DWGCopy+v1 - рабочая Activity (WBLOCK)
         # 100% через Autodesk APS API, БЕЗ fallback!
+        # Примечание: INSERT не работает в accoreconsole, нужен .NET плагин
+        
         body = {
             "activityId": "BotBti.DWG2DWGCopy+v1",
             "arguments": {
