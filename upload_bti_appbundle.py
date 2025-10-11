@@ -8,6 +8,7 @@ import sys
 import subprocess
 import requests
 import json
+import argparse
 
 def get_secret(name):
     """Получить секрет из Google Secret Manager"""
@@ -218,22 +219,30 @@ def create_activity(token, client_id, appbundle_id):
 
 def main():
     """Главная функция"""
+    # Парсинг аргументов командной строки
+    parser = argparse.ArgumentParser(description='Загрузка BTI AppBundle в Autodesk APS')
+    parser.add_argument('--bundle', default='out/BTI_InsertBasman.bundle.zip', 
+                        help='Путь к bundle.zip файлу')
+    parser.add_argument('--appname', default='BTI_InsertBasman',
+                        help='Имя AppBundle')
+    parser.add_argument('--alias', default='v1',
+                        help='Alias для AppBundle')
+    args = parser.parse_args()
+    
     print(f"\n╔══════════════════════════════════════════════════════════╗")
     print(f"║  🚀 ЗАГРУЗКА BTI APPBUNDLE В AUTODESK APS               ║")
     print(f"╚══════════════════════════════════════════════════════════╝\n")
     
-    # Путь к ZIP (должен быть создан на Windows)
-    zip_path = "BTI_TemplateAppBundle/bin/Release/net48/BTI_InsertBasman.bundle.zip"
+    # Путь к ZIP
+    zip_path = args.bundle
+    appbundle_name = args.appname
     
     if not os.path.exists(zip_path):
         print(f"❌ ZIP файл не найден: {zip_path}\n")
-        print(f"📋 ИНСТРУКЦИЯ ПО СОЗДАНИЮ ZIP:\n")
-        print(f"1. На Windows машине:")
-        print(f"   cd BTI_TemplateAppBundle")
-        print(f"   msbuild BTI_InsertBasman.csproj /p:Configuration=Release\n")
-        print(f"2. Создайте bundle.zip:")
-        print(f"   См. BTI_NET_PLUGIN_GUIDE.md\n")
-        print(f"3. Запустите этот скрипт снова")
+        print(f"📋 ЗАПУСТИТЕ НА WINDOWS:\n")
+        print(f"   pwsh .\\Build-BTI-AppBundle.ps1\n")
+        print(f"Затем запустите этот скрипт снова с:")
+        print(f"   python upload_bti_appbundle.py --bundle {zip_path}\n")
         sys.exit(1)
     
     # Получаем credentials

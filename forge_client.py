@@ -113,16 +113,15 @@ class ForgeClient:
             "Content-Type": "application/json"
         }
         
-        # Используем DWG2DWG_LISP_Insert+v1 - ВСТАВКА шаблона через AutoLISP
+        # Используем DWG2DWGCopy+v1 - единственная рабочая Activity (WBLOCK)
         # 100% через Autodesk APS API, БЕЗ fallback!
-        # БЕЗ .NET компиляции - использует AutoLISP скрипт!
-        template_url = "https://storage.googleapis.com/btibot-processed/templates/basmanny-template.dwg"
+        # ВАЖНО: В accoreconsole НЕ РАБОТАЮТ: _INSERT, XREF, и другие команды изменения структуры
+        # Для вставки шаблона БТИ ОБЯЗАТЕЛЬНО нужен .NET плагин (требует Windows компиляцию)
         
         body = {
-            "activityId": "BotBti.DWG2DWG_LISP_Insert+v1",
+            "activityId": "BotBti.DWG2DWGCopy+v1",
             "arguments": {
                 "inputFile": {"url": input_url},
-                "templateFile": {"url": template_url},  # Шаблон Басманная
                 "resultFile": {
                     "url": output_url,
                     "verb": "put"
