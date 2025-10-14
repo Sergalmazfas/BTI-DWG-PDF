@@ -18,7 +18,7 @@ BTI_TEMPLATE_ACTIVITY = "BotBti.BTI_INSERT_Basman+v1"  # С шаблоном (т
 BTI_SIMPLE_ACTIVITY = "BotBti.DWG2DWGCopy+v1"  # Простой режим (WBLOCK - проверено работает!)
 
 # 🆕 Activity V2 - Полный процесс обработки (LISP-based, 6 скриптов)
-BTI_FULL_ROOM_V2 = "BotBti.BTI_FULL_ROOM_V2+v2"  # Выравнивание, двери, окна, размеры, площадь
+BTI_FULL_ROOM_V2 = "BotBti.BTI_FULL_ROOM_V2+$LATEST"  # Выравнивание, двери, окна, размеры, площадь
 
 # Конфигурация Autodesk APS
 FORGE_CLIENT_ID = os.getenv("FORGE_CLIENT_ID")
