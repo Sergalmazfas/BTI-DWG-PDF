@@ -105,42 +105,87 @@ class ForgeClient:
             logger.error(f"❌ Ошибка создания Activity: {e}")
             raise
     
-    def submit_workitem(self, input_url, output_url):
-        """Запускает WorkItem для обработки DWG"""
+    def submit_workitem(self, input_url, output_url, mode="auto", use_template=False):
+        """Запускает WorkItem для обработки DWG
+        
+        Args:
+            input_url: URL входного DWG файла
+            output_url: URL для сохранения результата
+            mode: Режим обработки ("auto", "simple", "template", "point")
+            use_template: Использовать BTI шаблон (deprecated, use mode="template")
+        """
         token = self.get_access_token()
         headers = {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json"
         }
         
-        # Используем AutoCAD.PlotToPDF+25_0 (работает стабильно)
-        # SimpleDWG2DWG_NoTemplate+v1 имеет failedInstructions - нужен правильный AppBundle
-        body = {
-            "activityId": "AutoCAD.PlotToPDF+25_0",
-            "arguments": {
-                "HostDwg": {"url": input_url},
-                "Result": {
-                    "url": output_url,
-                    "verb": "put"
+        # Выбираем Activity и параметры в зависимости от режима
+        if mode == "point" or mode == "auto":
+            # Используем кастомную Activity с POINT командами вместо INSERT
+            body = {
+                "activityId": "BotBti.BTI_AUTO_PROCESS+v1",
+                "arguments": {
+                    "inputFile": {"url": input_url},
+                    "resultFile": {
+                        "url": output_url,
+                        "verb": "put"
+                    }
                 }
             }
-        }
+        elif mode == "template" or use_template:
+            # Режим с BTI шаблоном (если Activity существует)
+            body = {
+                "activityId": "BotBti.BTEInsertTemplate+v1",
+                "arguments": {
+                    "HostDwg": {"url": input_url},
+                    "Result": {
+                        "url": output_url,
+                        "verb": "put"
+                    }
+                }
+            }
+        else:
+            # Fallback к стандартной Activity для PDF
+            body = {
+                "activityId": "AutoCAD.PlotToPDF+25_0",
+                "arguments": {
+                    "HostDwg": {"url": input_url},
+                    "Result": {
+                        "url": output_url,
+                        "verb": "put"
+                    }
+                }
+            }
+        
         
         try:
-            logger.info(f"📤 Отправка WorkItem с activityId: {body['activityId']}")
+            logger.info(f"📤 Отправка WorkItem с activityId: {body['activityId']} (режим: {mode})")
             logger.info(f"📋 Request body: {json.dumps(body, indent=2)}")
             
             r = requests.post(f"{self.base_url}/workitems", headers=headers, json=body, timeout=30)
             r.raise_for_status()
             
             result = r.json()
-            logger.info(f"🚀 WorkItem запущен: {result['id']}")
+            workitem_id = result['id']
+            logger.info(f"🚀 WorkItem запущен: {workitem_id}")
+            
+            # Добавляем информацию о режиме в результат
+            result['processing_mode'] = mode
+            result['activity_used'] = body['activityId']
+            
             return result
             
         except requests.exceptions.RequestException as e:
-            logger.error(f"❌ Ошибка запуска WorkItem: {e}")
+            logger.error(f"❌ Ошибка запуска WorkItem (режим: {mode}): {e}")
             if hasattr(e, 'response') and e.response is not None and e.response.text:
                 logger.error(f"📋 Response error: {e.response.text}")
+                
+                # Если кастомная Activity не работает, попробуем fallback
+                if mode in ["point", "auto"] and "not found" in e.response.text.lower():
+                    logger.warning("⚠️ Кастомная Activity не найдена, используем fallback к PlotToPDF")
+                    return self.submit_workitem(input_url, output_url, mode="simple")
+                    
             raise
     
     def check_status(self, workitem_id):
@@ -214,9 +259,9 @@ def create_activity():
     """Создает Activity BTIProcessor.GenerateDWG (один раз)"""
     return forge_client.create_activity()
 
-def submit_workitem(input_url, output_url):
+def submit_workitem(input_url, output_url, mode="auto", use_template=False):
     """Запускает WorkItem для обработки DWG"""
-    return forge_client.submit_workitem(input_url, output_url)
+    return forge_client.submit_workitem(input_url, output_url, mode, use_template)
 
 def check_status(workitem_id):
     """Проверяет статус WorkItem"""
