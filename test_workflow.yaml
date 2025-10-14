@@ -1,0 +1,11 @@
+name: BTI AppBundle Workflow
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [forge-plugin-gold]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
