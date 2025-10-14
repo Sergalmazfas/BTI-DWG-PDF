@@ -12,7 +12,7 @@ import threading
 import tempfile
 import time
 import base64
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import Dict
 
 # Third-party imports - Flask
@@ -32,6 +32,7 @@ from google.cloud import storage
 # Local imports
 from dwg_converter import convert_dwg_to_pdf
 from gcs_queue_manager import GCSQueueManager
+from forge_client import ForgeClient
 
 # Add current directory to path for local imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -46,6 +47,7 @@ application = None
 _background_loop = None
 _loop_thread = None
 queue_manager = None
+forge_client = None
 
 # --- DWG → PDF Configuration ---
 ALLOWED_EXTENSIONS = {'dwg'}  # Only DWG
@@ -501,6 +503,7 @@ def status():
         },
         "endpoints": {
             "upload": "/upload",
+            "process_dwg": "/process-dwg",
             "health": "/health",
             "status": "/status",
             "webhook": "/",
@@ -633,6 +636,149 @@ def upload_file():
         return jsonify({
             "success": False,
             "message": "Failed to process DWG file"
+        }), 500
+
+@app.route('/process-dwg', methods=['POST'])
+def process_dwg():
+    """
+    Универсальный обработчик DWG файлов через Autodesk APS
+    
+    Принимает:
+    {
+        "file_url": "gs://bucket/path/to/file.dwg",
+        "mode": "bti" | "pdf" | "dwg2dwg",
+        "chat_id": "12345" (опционально),
+        "job_id": "uuid" (опционально)
+    }
+    
+    Возвращает:
+    {
+        "success": true,
+        "workitem_id": "...",
+        "result_url": "gs://...",
+        "processing_time": 3.5
+    }
+    """
+    try:
+        import uuid
+        from datetime import timedelta
+        start_time = time.time()
+        
+        data = request.json
+        file_url = data.get('file_url')
+        mode = data.get('mode', 'bti')
+        chat_id = data.get('chat_id', 'api')
+        job_id = data.get('job_id', str(uuid.uuid4()))
+        
+        if not file_url:
+            return jsonify({
+                "success": False,
+                "error": "file_url is required"
+            }), 400
+        
+        logger.info(f"🔄 Processing DWG via APS: {file_url}, mode={mode}")
+        
+        # Определяем пути для GCS
+        if file_url.startswith('gs://'):
+            input_blob_path = file_url.replace("gs://btibot-processed/", "")
+        else:
+            return jsonify({
+                "success": False,
+                "error": "file_url must be a GCS path (gs://...)"
+            }), 400
+        
+        # Выбираем формат вывода в зависимости от режима
+        if mode == 'pdf':
+            output_filename = f"{job_id}.pdf"
+            output_blob_path = f"ready/{chat_id}/{job_id}/out.pdf"
+        else:  # bti, dwg2dwg
+            output_filename = f"{job_id}.dwg"
+            output_blob_path = f"ready/{chat_id}/{job_id}/bti_ready.dwg"
+        
+        # Получаем Service Account credentials для signed URLs
+        from google.cloud import secretmanager
+        from google.oauth2 import service_account
+        
+        logger.info("🔑 Loading Service Account credentials for signed URLs...")
+        secret_client = secretmanager.SecretManagerServiceClient()
+        secret_name = "projects/talkhint/secrets/FORGE_SERVICE_KEY/versions/latest"
+        secret_response = secret_client.access_secret_version(request={"name": secret_name})
+        sa_credentials_json = json.loads(secret_response.payload.data.decode("UTF-8"))
+        
+        # Создаем credentials и GCS client
+        sa_credentials = service_account.Credentials.from_service_account_info(sa_credentials_json)
+        gcs_client = storage.Client(credentials=sa_credentials)
+        bucket = gcs_client.bucket("btibot-processed")
+        
+        # Input URL (публичный, т.к. бакет публичный)
+        if input_blob_path.startswith("https://"):
+            input_url = input_blob_path
+        else:
+            input_url = f"https://storage.googleapis.com/btibot-processed/{input_blob_path}"
+        logger.info(f"📥 Input URL (public): {input_url}")
+        
+        # Output URL (signed для записи, БЕЗ content_type!)
+        output_blob = bucket.blob(output_blob_path)
+        output_url = output_blob.generate_signed_url(
+            version="v4",
+            expiration=timedelta(hours=1),
+            method="PUT"
+        )
+        logger.info(f"📤 Output URL (signed): {output_url[:80]}...")
+        
+        # Отправляем WorkItem в Autodesk APS
+        try:
+            if not forge_client:
+                return jsonify({
+                    "success": False,
+                    "error": "Forge Client not initialized"
+                }), 500
+            
+            workitem = forge_client.submit_workitem(input_url, output_url)
+            workitem_id = workitem['id']
+            
+            logger.info(f"✅ WorkItem created: {workitem_id}")
+            
+            # Ожидаем завершения
+            result = forge_client.wait_for_completion(workitem_id, timeout_minutes=5)
+            
+            processing_time = time.time() - start_time
+            
+            if result.get('status') == 'success':
+                # Формируем URL результата
+                result_url = f"gs://btibot-processed/{output_blob_path}"
+                
+                logger.info(f"🎉 APS processing complete in {processing_time:.1f}s")
+                
+                return jsonify({
+                    "success": True,
+                    "workitem_id": workitem_id,
+                    "result_url": result_url,
+                    "mode": mode,
+                    "processing_time": round(processing_time, 2),
+                    "stats": result.get('stats', {})
+                })
+            else:
+                logger.error(f"❌ APS WorkItem failed: {result.get('status')}")
+                return jsonify({
+                    "success": False,
+                    "workitem_id": workitem_id,
+                    "error": f"WorkItem failed: {result.get('status')}",
+                    "report_url": result.get('reportUrl')
+                }), 500
+                
+        except Exception as forge_error:
+            logger.exception(f"❌ Forge API error: {forge_error}")
+            return jsonify({
+                "success": False,
+                "error": str(forge_error)
+            }), 500
+    
+    except Exception as e:
+        logger.exception(f"❌ Exception in /process-dwg: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
         }), 500
 
 @app.route('/process-queue', methods=['POST'])
@@ -880,6 +1026,29 @@ def webhook():
     if update:
         _run_coro(application.process_update(update))
     return jsonify({"status":"OK"})
+
+def init_forge_client():
+    """Инициализация Forge Client"""
+    global forge_client
+    try:
+        forge_client = ForgeClient()
+        logger.info("✅ Forge Client initialized")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize Forge Client: {e}")
+        return False
+
+def init_bot():
+    """Инициализация бота и других компонентов"""
+    global application
+    
+    # Инициализация Forge Client
+    if not init_forge_client():
+        logger.warning("⚠️ Forge Client initialization failed, but bot will continue")
+    
+    # Инициализация других компонентов (если нужно)
+    logger.info("✅ Bot initialization completed")
+    return True
 
 def process_queue_worker():
     """Фоновый процесс для обработки очереди"""
