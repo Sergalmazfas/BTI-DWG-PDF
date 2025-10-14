@@ -6,11 +6,7 @@
     "$(engine.path)\\accoreconsole.exe",
     "/i", "\"$(args[inputFile].path)\"",
     "/s", "\"$(appbundles[BtiPluginV2].path)/Contents/BTI_APPLY_COLOR.lsp\"",
-    "/al", "\"$(appbundles[BtiPluginV2].path)/Contents\"",
-    "/s", "\"$(appbundles[BtiPluginV2].path)/Contents/BTI_ORTHO_ADJUST.lsp\"",
-    "/s", "\"$(appbundles[BtiPluginV2].path)/Contents/BTI_APPLY_OBJECTS.lsp\"",
-    "/s", "\"$(appbundles[BtiPluginV2].path)/Contents/BTI_DIM_AREA.lsp\"",
-    "/s", "\"$(appbundles[BtiPluginV2].path)/Contents/BTI_CLEANUP.lsp\"",
+    "/b", "\"$(appbundles[BtiPluginV2].path)/Contents/BTI_FULL_PROCESS.scr\"",
     "/o", "\"$(args[outputFile].path)\""
   ],
   "parameters": {
