@@ -1,0 +1,27 @@
+{
+  "id": "BotBti.BTI_AUTO_PROCESS",
+  "engine": "Autodesk.AutoCAD+25_1",
+  "appbundles": ["BotBti.BtiPlugin+$LATEST"],
+  "commandLine": [
+    "$(engine.path)\\accoreconsole.exe",
+    "/i", "\"$(args[inputFile].path)\"",
+    "/s", "\"$(appbundles[BtiPlugin].path)/Contents/BTI_AUTO_APPLY.lsp\"",
+    "/o", "\"$(args[outputFile].path)\""
+  ],
+  "parameters": {
+    "inputFile": {
+      "localName": "input.dwg",
+      "verb": "get",
+      "description": "Input DWG file",
+      "required": true
+    },
+    "outputFile": {
+      "localName": "result.dwg",
+      "verb": "put",
+      "description": "Output BTI DWG file",
+      "required": true
+    }
+  },
+  "description": "BTI Auto Process - Automatic execution on load (MARK_DOOR → BTI_DOOR, MARK_WINDOW → BTI_WINDOW)"
+}
+

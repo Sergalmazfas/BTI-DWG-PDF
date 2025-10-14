@@ -23,6 +23,9 @@ BTI_FULL_ROOM_V2 = "BotBti.BTI_FULL_ROOM_V2+$LATEST"  # Выравнивание
 # ⚠️ ВРЕМЕННО: Цветовое распознавание не работает с Leica, используем простой режим
 BTI_DEFAULT_MODE = "simple"  # simple = DWG2DWGCopy (WBLOCK, без обработки)
 
+# 🆕 Activity с автоматической обработкой (LISP автозапуск)
+BTI_AUTO_PROCESS = "BotBti.BTI_AUTO_PROCESS+$LATEST"  # Слоевая обработка с автозапуском
+
 # Конфигурация Autodesk APS
 FORGE_CLIENT_ID = os.getenv("FORGE_CLIENT_ID")
 FORGE_CLIENT_SECRET = os.getenv("FORGE_CLIENT_SECRET")
@@ -133,7 +136,21 @@ class ForgeClient:
         }
         
         # Определяем режим обработки
-        if mode == "v2":
+        if mode == "auto":
+            # 🆕 AUTO - Автоматическая обработка (LISP автозапуск)
+            logger.info(f"🤖 Режим AUTO: Автоматическая BTI обработка")
+            logger.info(f"   ✅ Слоевое распознавание (MARK_DOOR, MARK_WINDOW)")
+            logger.info(f"   ✅ Вставка блоков (BTI_DOOR, BTI_WINDOW)")
+            logger.info(f"   ✅ Автозапуск при загрузке LISP")
+            
+            body = {
+                "activityId": BTI_AUTO_PROCESS,
+                "arguments": {
+                    "inputFile": {"url": input_url},
+                    "outputFile": {"url": output_url, "verb": "put"}
+                }
+            }
+        elif mode == "v2":
             # 🆕 V2 - Полный процесс обработки (выравнивание, двери, окна, размеры, площадь)
             logger.info(f"🏠 Режим V2: Полный процесс обработки BTI")
             logger.info(f"   ✅ Выравнивание углов")
