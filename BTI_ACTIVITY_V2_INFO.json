@@ -1,0 +1,8 @@
+{
+  "activity_id": "BotBti.BTI_FULL_ROOM_V2",
+  "full_id": "BotBti.BTI_FULL_ROOM_V2+v2",
+  "version": 1,
+  "engine": "Autodesk.AutoCAD+25_1",
+  "appbundle": "BotBti.BtiPluginV2+v2",
+  "status": "created"
+}

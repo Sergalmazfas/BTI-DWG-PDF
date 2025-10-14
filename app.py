@@ -881,11 +881,11 @@ def process_dwg():
         logger.info(f"📤 Output URL (signed): {output_url[:80]}...")
         
         # Отправляем WorkItem в Autodesk APS
-        # Проверяем режим работы с типовым шаблоном BTI
-        use_bti_template = os.getenv('USE_BTI_TEMPLATE', 'false').lower() == 'true'
+        # Режим обработки: v2 (полный процесс), simple, template
+        processing_mode = os.getenv('BTI_PROCESSING_MODE', 'v2')
         
         try:
-            workitem = forge_client.submit_workitem(input_url, output_url, use_template=use_bti_template)
+            workitem = forge_client.submit_workitem(input_url, output_url, mode=processing_mode)
             workitem_id = workitem['id']
             
             logger.info(f"✅ WorkItem created: {workitem_id}")
@@ -1114,11 +1114,11 @@ def process_queue():
                     logger.info(f"📤 Output URL (signed): {output_url[:80]}...")
                     
                     # Отправляем WorkItem в Autodesk APS
-                    # Проверяем режим работы с типовым шаблоном BTI
-                    use_bti_template = os.getenv('USE_BTI_TEMPLATE', 'false').lower() == 'true'
+                    # Режим обработки: v2 (полный процесс), simple, template
+                    processing_mode = os.getenv('BTI_PROCESSING_MODE', 'v2')
                     
                     try:
-                        workitem = forge_client.submit_workitem(input_url, output_url, use_template=use_bti_template)
+                        workitem = forge_client.submit_workitem(input_url, output_url, mode=processing_mode)
                         workitem_id = workitem['id']
                         
                         # Ожидаем завершения

@@ -17,6 +17,9 @@ BTI_TEMPLATE_URL = "https://storage.googleapis.com/btibot-processed/templates/bt
 BTI_TEMPLATE_ACTIVITY = "BotBti.BTI_INSERT_Basman+v1"  # С шаблоном (требует .NET плагин)
 BTI_SIMPLE_ACTIVITY = "BotBti.DWG2DWGCopy+v1"  # Простой режим (WBLOCK - проверено работает!)
 
+# 🆕 Activity V2 - Полный процесс обработки (LISP-based, 6 скриптов)
+BTI_FULL_ROOM_V2 = "BotBti.BTI_FULL_ROOM_V2+v2"  # Выравнивание, двери, окна, размеры, площадь
+
 # Конфигурация Autodesk APS
 FORGE_CLIENT_ID = os.getenv("FORGE_CLIENT_ID")
 FORGE_CLIENT_SECRET = os.getenv("FORGE_CLIENT_SECRET")
@@ -110,14 +113,15 @@ class ForgeClient:
             logger.error(f"❌ Ошибка создания Activity: {e}")
             raise
     
-    def submit_workitem(self, input_url, output_url, use_template=False):
+    def submit_workitem(self, input_url, output_url, use_template=False, mode="v2"):
         """
         Запускает WorkItem для обработки DWG
         
         Args:
             input_url: URL входного DWG файла
             output_url: URL для сохранения результата
-            use_template: Использовать ли типовой шаблон BTI (default: False)
+            use_template: Использовать ли типовой шаблон BTI (default: False) - DEPRECATED
+            mode: Режим обработки - "v2" (полный процесс), "simple" (без обработки), "template" (со вставкой шаблона)
         """
         token = self.get_access_token()
         headers = {
@@ -125,9 +129,24 @@ class ForgeClient:
             "Content-Type": "application/json"
         }
         
-        # Формируем WorkItem в зависимости от режима
-        if use_template:
-            # Режим с типовым шаблоном BTI
+        # Определяем режим обработки
+        if mode == "v2":
+            # 🆕 V2 - Полный процесс обработки (выравнивание, двери, окна, размеры, площадь)
+            logger.info(f"🏠 Режим V2: Полный процесс обработки BTI")
+            logger.info(f"   ✅ Выравнивание углов")
+            logger.info(f"   ✅ Цветовое распознавание")
+            logger.info(f"   ✅ Двери и окна")
+            logger.info(f"   ✅ Размеры и площадь")
+            
+            body = {
+                "activityId": BTI_FULL_ROOM_V2,
+                "arguments": {
+                    "inputFile": {"url": input_url},
+                    "outputFile": {"url": output_url, "verb": "put"}
+                }
+            }
+        elif mode == "template" or use_template:
+            # Режим с типовым шаблоном BTI (legacy)
             logger.info(f"🏛️ Режим: с типовым шаблоном BTI Basmanny")
             logger.info(f"📄 Шаблон: {BTI_TEMPLATE_URL}")
             
@@ -140,7 +159,7 @@ class ForgeClient:
                 }
             }
         else:
-            # Простой режим (без шаблона)
+            # Простой режим (без обработки)
             logger.info(f"📐 Режим: простая обработка DWG (без шаблона)")
             
             body = {
