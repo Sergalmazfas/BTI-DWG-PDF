@@ -1488,7 +1488,7 @@ def gcs_push():
             "message": f"Internal server error: {str(e)}"
         }), 500
 
-@app.route('/', methods=['POST'])
+@app.route('/webhook', methods=['POST'])
 def webhook():
     if application is None or _background_loop is None:
         if not init_bot():
