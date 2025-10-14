@@ -24,7 +24,9 @@ BTI_FULL_ROOM_V2 = "BotBti.BTI_FULL_ROOM_V2+$LATEST"  # Выравнивание
 BTI_DEFAULT_MODE = "simple"  # simple = DWG2DWGCopy (WBLOCK, без обработки)
 
 # 🆕 Activity с автоматической обработкой (LISP автозапуск)
-BTI_AUTO_PROCESS = "BotBti.BTI_AUTO_PROCESS+$LATEST"  # Слоевая обработка с автозапуском
+BTI_AUTO_PROCESS = "BotBti.BTI_AUTO_PROCESS+v1"  # Слоевая обработка с автозапуском
+# AppBundle для AUTO режима
+BTI_AUTO_APPBUNDLE = "BotBti.BtiAutoProcess+v1"  # Содержит BTI_AUTO_APPLY.lsp
 
 # Конфигурация Autodesk APS
 FORGE_CLIENT_ID = os.getenv("FORGE_CLIENT_ID")
