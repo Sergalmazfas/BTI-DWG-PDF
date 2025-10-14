@@ -1,0 +1,78 @@
+╔══════════════════════════════════════════════════════════════╗
+║          🤖 Задача для Gemini CLI на Windows VM              ║
+╚══════════════════════════════════════════════════════════════╝
+
+📋 COPY-PASTE это в Gemini CLI на VM:
+
+═══════════════════════════════════════════════════════════════
+
+Задача: Создать и загрузить AppBundle для Autodesk APS Design Automation
+
+Контекст:
+- Проект: C:\BTI-DWG-PDF\BTI_TemplateAppBundle\BTI_InsertBasman.csproj
+- Существующие скрипты: build-fixed.ps1, setup-and-build.ps1, build.ps1
+- Шаблон BTI: bti_basmanny_template.dwg (уже скачан на VM)
+
+Credentials:
+- APS_CLIENT_ID: m6CK3EHpibW1XrHpPFiOfs83BCfp0zHDGtaAc6vcLatU6Pp4
+- APS_CLIENT_SECRET: tm9AyCWiSGmBytA1VVhXMrZu4hKsGFUudPDae9bdboHWstG08ySRITBYNGt1nRjW
+- Nickname: BotBti (уже зарегистрирован)
+
+Задачи:
+1. Проверь существующие скрипты (build-fixed.ps1, setup-and-build.ps1)
+2. Если они работают - используй их для компиляции
+3. Если нет - создай новый скрипт который:
+   a) Компилирует BTI_InsertBasman.csproj → C:\out\BTI_InsertBasman.dll
+   b) Создает структуру .bundle:
+      C:\out\BtiPlugin.bundle\
+      ├── PackageContents.xml
+      └── Contents\
+          └── BTI_InsertBasman.dll
+   c) Создает архив C:\out\BtiPlugin.zip
+   d) Регистрирует AppBundle через Autodesk APS API:
+      - POST https://developer.api.autodesk.com/da/us-east/v3/appbundles
+      - AppBundle ID: BotBti.BtiPlugin
+      - Engine: Autodesk.AutoCAD+25_1
+   e) Загружает ZIP на S3
+   f) Создает alias v1
+
+PackageContents.xml должен содержать:
+<?xml version="1.0"?>
+<ApplicationPackage SchemaVersion="1.0">
+  <Components>
+    <RuntimeRequirements OS="Win64" Platform="AutoCAD" />
+    <ComponentEntry AppName="BtiPlugin" ModuleName="./Contents/BTI_InsertBasman.dll">
+      <Commands GroupName="BTI">
+        <Command Global="BTI_INSERT_TEMPLATE" />
+      </Commands>
+    </ComponentEntry>
+  </Components>
+</ApplicationPackage>
+
+Результат: AppBundle BotBti.BtiPlugin+v1 зарегистрирован и готов к использованию.
+
+═══════════════════════════════════════════════════════════════
+
+📊 ОЖИДАЕМЫЙ ВЫВОД:
+
+✅ BTI_InsertBasman.dll скомпилирован
+✅ BtiPlugin.bundle создан
+✅ BtiPlugin.zip создан (размер ~50-100 KB)
+✅ AppBundle зарегистрирован: BotBti.BtiPlugin+v1
+✅ Загружен на S3
+✅ Alias v1 создан
+
+═══════════════════════════════════════════════════════════════
+
+⚠️ ВАЖНО:
+
+Если AutoCAD НЕ установлен на VM:
+→ Используй существующий рабочий Activity: BotBti.DWG2DWGCopy+v1
+→ Он уже задеплоен и работает (00035-tzd)
+→ Тест пройден: ✅ success (11.56 сек)
+→ .NET плагин НЕ НУЖЕН для базовой функциональности!
+
+╔══════════════════════════════════════════════════════════════╗
+║              🤖 Задача для Gemini готова!                    ║
+╚══════════════════════════════════════════════════════════════╝
+

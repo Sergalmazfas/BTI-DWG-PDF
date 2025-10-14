@@ -13,6 +13,7 @@ import tempfile
 import time
 import base64
 import re
+import uuid
 from datetime import datetime, timezone, timedelta
 from typing import Dict
 from unidecode import unidecode
@@ -34,7 +35,7 @@ from google.cloud import storage
 # Local imports
 from dwg_converter import convert_dwg_to_pdf
 from gcs_queue_manager import GCSQueueManager
-from forge_client import ForgeClient
+from forge_client import ForgeClient, forge_client
 
 # Add current directory to path for local imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -880,8 +881,11 @@ def process_dwg():
         logger.info(f"📤 Output URL (signed): {output_url[:80]}...")
         
         # Отправляем WorkItem в Autodesk APS
+        # Проверяем режим работы с типовым шаблоном BTI
+        use_bti_template = os.getenv('USE_BTI_TEMPLATE', 'false').lower() == 'true'
+        
         try:
-            workitem = forge_client.submit_workitem(input_url, output_url)
+            workitem = forge_client.submit_workitem(input_url, output_url, use_template=use_bti_template)
             workitem_id = workitem['id']
             
             logger.info(f"✅ WorkItem created: {workitem_id}")
@@ -1110,8 +1114,11 @@ def process_queue():
                     logger.info(f"📤 Output URL (signed): {output_url[:80]}...")
                     
                     # Отправляем WorkItem в Autodesk APS
+                    # Проверяем режим работы с типовым шаблоном BTI
+                    use_bti_template = os.getenv('USE_BTI_TEMPLATE', 'false').lower() == 'true'
+                    
                     try:
-                        workitem = forge_client.submit_workitem(input_url, output_url)
+                        workitem = forge_client.submit_workitem(input_url, output_url, use_template=use_bti_template)
                         workitem_id = workitem['id']
                         
                         # Ожидаем завершения
@@ -1451,7 +1458,10 @@ def gcs_push():
             )
             
             # Отправляем WorkItem в APS
-            workitem = forge_client.submit_workitem(input_url, output_url)
+            # Проверяем режим работы с типовым шаблоном BTI
+            use_bti_template = os.getenv('USE_BTI_TEMPLATE', 'false').lower() == 'true'
+            
+            workitem = forge_client.submit_workitem(input_url, output_url, use_template=use_bti_template)
             workitem_id = workitem['id']
             
             logger.info(f"✅ WorkItem создан: {workitem_id}")

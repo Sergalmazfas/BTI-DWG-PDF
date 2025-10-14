@@ -1,242 +1,225 @@
-# 📋 TASK REPORT: BTI .NET AppBundle для вставки шаблона Басманная
+# 🧩 BTI AppBundle Integration Report
 
-**Task ID:** TASK-2025-10-09-BTI-NET-PLUGIN  
-**Status:** ⏳ Ready for Windows Compilation  
-**Priority:** High  
-**Created:** 2025-10-09  
-**Service:** telegram-bti-bot / Autodesk Design Automation
+**Дата:** 2025-10-14  
+**Исполнитель:** Автоматическая сборка через GCP Windows VM  
+**Платформа:** Windows Server 2022 + Cloud Shell automation  
 
 ---
 
-## 🎯 Цель задачи
+## 📦 AppBundle Details
 
-Реализовать полноценную вставку шаблона БТИ "Басманная обмерный план" при обработке DWG-файлов через Autodesk Design Automation API, используя .NET плагин.
+| Параметр | Значение |
+|----------|----------|
+| **AppBundle ID** | `BTI_InsertBasman+v1` |
+| **Full ID** | `m6CK3EHpibW1XrHpPFiOfs83BCfp0zHDGtaAc6vcLatU6Pp4.BTI_InsertBasman+v1` |
+| **Activity ID** | `m6CK3EHpibW1XrHpPFiOfs83BCfp0zHDGtaAc6vcLatU6Pp4.DWG2DWGTest+v1` |
+| **Alias** | `v1` (version 2) |
+| **Engine** | `Autodesk.AutoCAD+25_1` |
+| **Bundle Size** | `1.9 KiB (1950 bytes)` |
+| **Timestamp** | `2025-10-14T10:18:53Z` |
+| **Location** | `gs://btibot-processed/appbundles/BTI_InsertBasman.bundle.zip` |
+| **Статус загрузки** | ✅ Success |
 
 ---
 
-## ✅ Что сделано (готово к компиляции)
+## 🧱 Compilation Details
 
-### 1️⃣ **Исходный код плагина**
+**Метод сборки:** Автоматический скрипт через Windows VM startup script
 
-**Файл:** `BTI_TemplateAppBundle/BTI_InsertBasman.cs`
+**Процесс:**
+1. ✅ Windows Server 2022 VM создана (instance-20251013-185458, us-central1-c)
+2. ✅ Файлы исходного кода загружены в GCS (bti-source.zip)
+3. ✅ Автоматический скрипт `build-fixed.ps1` выполнен при загрузке VM
+4. ✅ .NET SDK 8.0.120 использован для компиляции
+5. ✅ DLL создана: `BTI_InsertBasman.dll` (4 KB)
+6. ✅ Упаковано с `PackageContents_Basmann.xml` (247 bytes)
+7. ✅ Bundle загружен в GCS, затем в Autodesk APS
 
-**Функциональность:**
-- ✅ Command: `InsertBTIBasman`
-- ✅ Загрузка `template.dwg` через `Database.ReadDwgFile()`
-- ✅ Вставка как блок через `Database.Insert()`
-- ✅ Создание `BlockReference` в Model Space
-- ✅ Сохранение `result.dwg` (формат AC1032)
-- ✅ Полный error handling с fallback
-- ✅ Детальное логирование всех этапов
+**Команда сборки:**
+```powershell
+dotnet build C:\source\BTI_TemplateAppBundle\BTI_InsertBasman.csproj -c Release -o C:\out
+```
 
-**Ключевые особенности:**
-```csharp
-// Загружаем template.dwg
-templateDb.ReadDwgFile(templatePath, FileShare.Read, true, "");
-
-// Вставляем как блок
-ObjectId blockId = db.Insert("BasmanTemplate", templateDb, true);
-
-// Создаём ссылку на блок
-BlockReference blockRef = new BlockReference(Point3d.Origin, blockId);
-modelSpace.AppendEntity(blockRef);
-
-// Сохраняем результат
-db.SaveAs("result.dwg", DwgVersion.AC1032);
+**Bundle содержимое:**
+```
+Archive:  BTI_InsertBasman.bundle.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+     4096  2025-10-14 10:18   BTI_InsertBasman.dll
+      247  2025-10-14 09:19   PackageContents_Basmann.xml
+---------                     -------
+     4343                     2 files
 ```
 
 ---
 
-### 2️⃣ **Манифест AppBundle**
+## 🔁 Activity Details
 
-**Файл:** `BTI_TemplateAppBundle/PackageContents_Basmann.xml`
+**Activity создана:** ✅
 
-**Конфигурация:**
-- ✅ SchemaVersion: 1.0
-- ✅ Name: BTI_InsertBasman
-- ✅ Engine: AutoCAD R25.0-R25.1
-- ✅ Module: ./Contents/BTI_InsertBasman.dll
-- ✅ Command: InsertBTIBasman
+**CommandLine:**
+```
+$(engine.path)\accoreconsole.exe /i "$(args[inputFile].path)" /al "$(appbundles[BTI_InsertBasman].path)" /s "_QSAVE\n_QUIT\n"
+```
 
----
+**Parameters:**
+- `inputFile`: verb=get, localName=input.dwg
+- `resultFile`: verb=put, localName=input.dwg
 
-### 3️⃣ **Проект компиляции**
-
-**Файл:** `BTI_TemplateAppBundle/BTI_InsertBasman.csproj`
-
-**Настройки:**
-- ✅ Target: .NET Framework 4.8
-- ✅ Platform: x64
-- ✅ References: acdbmgd, acmgd, AcCoreMgd
-- ✅ Output: BTI_InsertBasman.dll
+**AppBundles referenced:**
+- `m6CK3EHpibW1XrHpPFiOfs83BCfp0zHDGtaAc6vcLatU6Pp4.BTI_InsertBasman+v1`
 
 ---
 
-### 4️⃣ **Скрипт автоматической загрузки**
+## ⚠️ Важные замечания
 
-**Файл:** `upload_bti_appbundle.py`
+### Текущее состояние плагина:
 
-**Функции:**
-- ✅ `create_appbundle()` - создание AppBundle в APS
-- ✅ `create_alias()` - создание alias v1
-- ✅ `create_activity()` - создание Activity с AppBundle
-- ✅ Интеграция с Google Secret Manager
-- ✅ Автоматическая загрузка ZIP
+**Это ТЕСТОВАЯ версия!** Плагин содержит минимальный код БЕЗ Autodesk AutoCAD зависимостей:
 
----
+```csharp
+using System;
 
-### 5️⃣ **Шаблон БТИ**
-
-**Файл:** `templates/basmanny-template.dwg`
-
-**Детали:**
-- ✅ Размер: 52,420 bytes
-- ✅ Public URL: https://storage.googleapis.com/btibot-processed/templates/basmanny-template.dwg
-- ✅ Доступен через HTTPS
-- ✅ БЕЗ кириллицы в имени
-
----
-
-### 6️⃣ **Документация**
-
-**Файлы:**
-- ✅ `BTI_NET_PLUGIN_GUIDE.md` - полная инструкция
-- ✅ `BUILD_WINDOWS.md` - пошаговая компиляция на Windows
-- ✅ `BTI_NET_APPBUNDLE_TASK_REPORT.md` - этот отчёт
-
----
-
-## 🔄 Activity спецификация
-
-### **ID:** `BotBti.DWG2DWG_InsertBasman+v1`
-
-### **Конфигурация:**
-
-```json
+namespace BTI_TemplatePlugin
 {
-  "id": "DWG2DWG_InsertBasman",
-  "engine": "Autodesk.AutoCAD+25_1",
-  "commandLine": [
-    "$(engine.path)\\\\accoreconsole.exe /i \"$(args[inputFile].path)\" /al \"$(appbundles[BTI_InsertBasman].path)\" /s \"InsertBTIBasman\\n\""
-  ],
-  "parameters": {
-    "inputFile": {
-      "verb": "get",
-      "localName": "input.dwg",
-      "required": true
-    },
-    "templateFile": {
-      "verb": "get",
-      "localName": "template.dwg",
-      "required": true,
-      "url": "https://storage.googleapis.com/btibot-processed/templates/basmanny-template.dwg"
-    },
-    "resultFile": {
-      "verb": "put",
-      "localName": "result.dwg",
-      "required": true
+    public class Commands
+    {
+        public static void SaveDWG()
+        {
+            Console.WriteLine("BTI Plugin Loaded");
+        }
     }
-  },
-  "appbundles": ["BotBti.BTI_InsertBasman+v1"]
 }
 ```
 
+**Почему упрощённый код:**
+- ❌ На Windows VM нет AutoCAD DLL для компиляции
+- ❌ Полный код с `Autodesk.AutoCAD.*` вызывает ошибки компиляции
+- ✅ Минимальная версия позволяет проверить, что pipeline работает
+
+**Для продакшена нужно:**
+1. Установить AutoCAD ObjectARX SDK на Windows машине
+2. Скомпилировать ПОЛНЫЙ плагин с `Database.Insert()` и шаблоном БТИ
+3. Загрузить новую версию AppBundle
+
 ---
 
-## ⏳ Что осталось сделать (требуется Windows)
+## 🧪 Тестирование
 
-| № | Задача | Статус | Исполнитель |
-|---|--------|--------|-------------|
-| 1 | Скомпилировать BTI_InsertBasman.dll | ⏳ Pending | Windows машина |
-| 2 | Создать BTI_InsertBasman.bundle.zip | ⏳ Pending | Windows машина |
-| 3 | Загрузить AppBundle в APS | ⏳ Pending | Python script или Web UI |
-| 4 | Создать Activity | ⏳ Pending | Python script или Web UI |
-| 5 | Обновить forge_client.py | ⏳ Pending | После создания Activity |
-| 6 | Задеплоить бота | ⏳ Pending | Cloud Run |
-| 7 | Протестировать | ⏳ Pending | Telegram |
+**Статус:** ⏳ В процессе
+
+**План:**
+1. ✅ Деплой Telegram бота с новой Activity (в процессе)
+2. ⏳ Отправить тестовый DWG файл через @ZamerProbot
+3. ⏳ Проверить статус WorkItem
+4. ⏳ Протестировать 5 разных DWG файлов
+5. ⏳ Зафиксировать время обработки и p95
+
+**Ожидаемый результат:**
+- WorkItem должен завершиться со `status: "success"`
+- Выходной DWG должен быть создан
+- Плагин загрузится (`/al` параметр)
+- **НО:** шаблон БТИ не будет вставлен (т.к. плагин тестовый)
+
+---
+
+## 📊 Проблемы и решения
+
+### Проблема 1: Нехватка памяти на VM
+- **Проблема:** e2-micro (1 GB) недостаточно для Windows Server
+- **Решение:** Увеличили до e2-small (2 GB) и e2-standard-2 (4 GB)
+
+### Проблема 2: GitHub недоступен с VM
+- **Проблема:** Private repository требует auth
+- **Решение:** Загрузили исходники в GCS, VM скачивает оттуда
+
+### Проблема 3: Autodesk DLL отсутствуют
+- **Проблема:** `error CS0246: The type or namespace name 'Autodesk' could not be found`
+- **Решение:** Создали упрощённую версию БЕЗ Autodesk зависимостей для теста pipeline
+
+### Проблема 4: Пустой bundle.zip (22 bytes)
+- **Проблема:** 7zip не находил файлы для архивации
+- **Решение:** Исправили пути в PowerShell скрипте, использовали автопоиск файлов
+
+### Проблема 5: GCS права доступа (403)
+- **Проблема:** VM не могла загружать в GCS
+- **Решение:** Добавили `devstorage.read_write` scope к service account
 
 ---
 
 ## ✅ Acceptance Criteria
 
-| № | Критерий | Метод проверки | Статус |
-|---|----------|----------------|---------|
-| 1 | Шаблон template.dwg вставляется корректно | Открыть result.dwg в AutoCAD | ⏳ |
-| 2 | result.dwg создаётся без ошибок | WorkItem status: success | ⏳ |
-| 3 | Activity зарегистрирован | GET /activities показывает DWG2DWG_InsertBasman+v1 | ⏳ |
-| 4 | Success rate ≥ 95% | 95 из 100 WorkItems успешны | ⏳ |
-| 5 | Обработка ≤ 15 сек | stats.timeFinished - stats.timeQueued | ⏳ |
-| 6 | БЕЗ failedDownload | Логи не содержат "failedDownload" | ✅ (нормализация работает) |
-| 7 | Ответ Telegram содержит "✅ Шаблон применён" | Проверка сообщения | ⏳ |
+| Критерий | Статус | Комментарий |
+|----------|--------|-------------|
+| AppBundle загружен в APS | ✅ | Version 2, alias v1 |
+| Activity создана/обновлена | ✅ | DWG2DWGTest+v1 |
+| .NET плагин компилируется без ошибок | ✅ | Тестовая версия |
+| 5/5 тестовых файлов обработаны | ⏳ | Ожидает деплоя бота |
+| Шаблон БТИ вставляется корректно | ❌ | Требуется полный плагин |
+| Время обработки ≤ 5 сек | ⏳ | Будет проверено при тестах |
+| Нет `failedInstructions` / `failedDownload` | ⏳ | Будет проверено при тестах |
+| Логи без критических ошибок | ⏳ | Будет проверено при тестах |
 
 ---
 
-## 📚 Официальная документация (использованная)
+## 🎯 Следующие шаги
 
-✅ **Design Automation API v3:**  
-https://aps.autodesk.com/en/docs/design-automation/v3/
+### Немедленно (после деплоя бота):
+1. ✅ Протестировать через Telegram бота (@ZamerProbot)
+2. ✅ Проверить WorkItem status
+3. ✅ Убедиться что плагин загружается
 
-✅ **Creating AppBundles:**  
-https://aps.autodesk.com/en/docs/design-automation/v3/tutorials/autocad/step3-create-appbundle/
-
-✅ **AutoCAD .NET API:**  
-https://help.autodesk.com/view/OARX/2025/ENU/
-
-✅ **Database.Insert() method:**  
-https://help.autodesk.com/view/OARX/2025/ENU/?guid=GUID-8B8E7F4A-9C2D-4F1E-8A3B-5C6D7E8F9A0B
-
----
-
-## 🔧 Текущее состояние системы
-
-### **Работает прямо сейчас:**
-
-| Компонент | Статус | Версия |
-|-----------|--------|--------|
-| telegram-bti-bot | ✅ Running | 00022-k8r |
-| Activity | ✅ Working | BotBti.DWG2DWGCopy+v1 |
-| Нормализация имён | ✅ Active | normalize_filename() |
-| DWG → DWG | ✅ 100% | WBLOCK метод |
-| Шаблон БТИ | ❌ Not Applied | Требуется .NET |
-
-### **После компиляции .NET плагина:**
-
-| Компонент | Статус | Версия |
-|-----------|--------|--------|
-| telegram-bti-bot | ✅ Running | 00023+ |
-| Activity | ✅ Working | BotBti.DWG2DWG_InsertBasman+v1 |
-| Нормализация имён | ✅ Active | normalize_filename() |
-| DWG → DWG | ✅ 100% | .NET Insert |
-| **Шаблон БТИ** | **✅ Applied** | **Басманная вставляется!** |
+### Для продакшена (требуется Windows с AutoCAD SDK):
+1. ❌ Установить AutoCAD ObjectARX SDK
+2. ❌ Скомпилировать полный плагин с вставкой шаблона
+3. ❌ Загрузить версию 3 AppBundle
+4. ❌ Протестировать с реальными БТИ обмерами
 
 ---
 
-## 📦 Итоговые артефакты
+## 📚 Ссылки
 
-После выполнения всех шагов будут созданы:
-
-1. ✅ `BTI_InsertBasman.dll` - скомпилированный плагин
-2. ✅ `BTI_InsertBasman.bundle.zip` - готовый AppBundle
-3. ✅ AppBundle `BotBti.BTI_InsertBasman+v1` в APS
-4. ✅ Activity `BotBti.DWG2DWG_InsertBasman+v1` в APS
-5. ✅ Обновлённый `forge_client.py`
-6. ✅ Задеплоенный `telegram-bti-bot`
+- **Официальная документация:** https://aps.autodesk.com/en/docs/design-automation/v3/
+- **Репозиторий:** https://github.com/Sergalmazfas/BTI-DWG-PDF
+- **AppBundle в GCS:** gs://btibot-processed/appbundles/BTI_InsertBasman.bundle.zip
+- **Source в GCS:** gs://btibot-processed/sources/bti-source.zip
 
 ---
 
-## 🎯 Следующий шаг
+## 🔍 Технические детали
 
-**На Windows машине выполните:**
+### Windows VM:
+- **Instance:** instance-20251013-185458
+- **Zone:** us-central1-c
+- **Machine:** e2-small (2 vCPU, 2 GB RAM)
+- **OS:** Windows Server 2022 Datacenter
+- **IP:** 104.154.216.53
 
-```cmd
-cd BTI_TemplateAppBundle
-msbuild BTI_InsertBasman.csproj /p:Configuration=Release /p:Platform=x64
-```
+### Startup Script:
+- **Location:** gs://btibot-processed/scripts/build-fixed.ps1
+- **Method:** windows-startup-script-url
+- **Execution:** Автоматически при каждом reset
 
-**Следуйте инструкциям в:** `BUILD_WINDOWS.md`
+### Build Process:
+- **Chocolatey:** Уже установлен
+- **Git:** Установлен через choco
+- **.NET SDK:** 8.0.120
+- **7-Zip:** 25.01 (x64)
+- **Build time:** ~10 минут (после загрузки VM)
 
 ---
 
-**© 2025 BTI-Bot - Autodesk APS Integration**  
-**Task Status:** Ready for Windows Compilation 🚀
+## 🎉 Итоговый вывод
 
+✅ **AppBundle успешно собран и загружен в Autodesk APS!**
+
+✅ **Activity создана и связана с AppBundle.**
+
+⚠️ **Текущая версия плагина - ТЕСТОВАЯ (без Autodesk функционала).**
+
+📋 **После тестирования через бота - обновить плагин с полным кодом вставки шаблона БТИ.**
+
+---
+
+**Дата завершения:** 2025-10-14 10:40 UTC  
+**Подпись:** Automated Build System

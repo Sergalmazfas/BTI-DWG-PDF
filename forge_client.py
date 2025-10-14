@@ -12,6 +12,11 @@ from google.cloud import storage
 
 logger = logging.getLogger(__name__)
 
+# Конфигурация типового шаблона BTI
+BTI_TEMPLATE_URL = "https://storage.googleapis.com/btibot-processed/templates/bti_basmanny_template.dwg"
+BTI_TEMPLATE_ACTIVITY = "BotBti.BTI_INSERT_Basman+v1"  # С шаблоном (требует .NET плагин)
+BTI_SIMPLE_ACTIVITY = "BotBti.DWG2DWGCopy+v1"  # Простой режим (WBLOCK - проверено работает!)
+
 # Конфигурация Autodesk APS
 FORGE_CLIENT_ID = os.getenv("FORGE_CLIENT_ID")
 FORGE_CLIENT_SECRET = os.getenv("FORGE_CLIENT_SECRET")
@@ -105,29 +110,46 @@ class ForgeClient:
             logger.error(f"❌ Ошибка создания Activity: {e}")
             raise
     
-    def submit_workitem(self, input_url, output_url):
-        """Запускает WorkItem для обработки DWG"""
+    def submit_workitem(self, input_url, output_url, use_template=False):
+        """
+        Запускает WorkItem для обработки DWG
+        
+        Args:
+            input_url: URL входного DWG файла
+            output_url: URL для сохранения результата
+            use_template: Использовать ли типовой шаблон BTI (default: False)
+        """
         token = self.get_access_token()
         headers = {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json"
         }
         
-        # Используем DWG2DWGCopy+v1 - единственная рабочая Activity (WBLOCK)
-        # 100% через Autodesk APS API, БЕЗ fallback!
-        # ВАЖНО: В accoreconsole НЕ РАБОТАЮТ: _INSERT, XREF, и другие команды изменения структуры
-        # Для вставки шаблона БТИ ОБЯЗАТЕЛЬНО нужен .NET плагин (требует Windows компиляцию)
-        
-        body = {
-            "activityId": "BotBti.DWG2DWGCopy+v1",
-            "arguments": {
-                "inputFile": {"url": input_url},
-                "resultFile": {
-                    "url": output_url,
-                    "verb": "put"
+        # Формируем WorkItem в зависимости от режима
+        if use_template:
+            # Режим с типовым шаблоном BTI
+            logger.info(f"🏛️ Режим: с типовым шаблоном BTI Basmanny")
+            logger.info(f"📄 Шаблон: {BTI_TEMPLATE_URL}")
+            
+            body = {
+                "activityId": BTI_TEMPLATE_ACTIVITY,
+                "arguments": {
+                    "inputFile": {"url": input_url},
+                    "templateFile": {"url": BTI_TEMPLATE_URL},
+                    "resultFile": {"url": output_url, "verb": "put"}
                 }
             }
-        }
+        else:
+            # Простой режим (без шаблона)
+            logger.info(f"📐 Режим: простая обработка DWG (без шаблона)")
+            
+            body = {
+                "activityId": BTI_SIMPLE_ACTIVITY,
+                "arguments": {
+                    "inputFile": {"url": input_url},
+                    "resultFile": {"url": output_url, "verb": "put"}
+                }
+            }
         
         try:
             logger.info(f"📤 Отправка WorkItem с activityId: {body['activityId']}")
