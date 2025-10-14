@@ -882,7 +882,8 @@ def process_dwg():
         
         # Отправляем WorkItem в Autodesk APS
         # Режим обработки: v2 (полный процесс), simple, template
-        processing_mode = os.getenv('BTI_PROCESSING_MODE', 'v2')
+        # ВРЕМЕННО: используем simple т.к. цветовое распознавание не работает с Leica
+        processing_mode = os.getenv('BTI_PROCESSING_MODE', 'simple')
         
         try:
             workitem = forge_client.submit_workitem(input_url, output_url, mode=processing_mode)
@@ -1115,7 +1116,8 @@ def process_queue():
                     
                     # Отправляем WorkItem в Autodesk APS
                     # Режим обработки: v2 (полный процесс), simple, template
-                    processing_mode = os.getenv('BTI_PROCESSING_MODE', 'v2')
+                    # ВРЕМЕННО: используем simple т.к. цветовое распознавание не работает с Leica
+                    processing_mode = os.getenv('BTI_PROCESSING_MODE', 'simple')
                     
                     try:
                         workitem = forge_client.submit_workitem(input_url, output_url, mode=processing_mode)

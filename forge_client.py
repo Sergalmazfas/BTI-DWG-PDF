@@ -20,6 +20,9 @@ BTI_SIMPLE_ACTIVITY = "BotBti.DWG2DWGCopy+v1"  # Простой режим (WBLO
 # 🆕 Activity V2 - Полный процесс обработки (LISP-based, 6 скриптов)
 BTI_FULL_ROOM_V2 = "BotBti.BTI_FULL_ROOM_V2+$LATEST"  # Выравнивание, двери, окна, размеры, площадь
 
+# ⚠️ ВРЕМЕННО: Цветовое распознавание не работает с Leica, используем простой режим
+BTI_DEFAULT_MODE = "simple"  # simple = DWG2DWGCopy (WBLOCK, без обработки)
+
 # Конфигурация Autodesk APS
 FORGE_CLIENT_ID = os.getenv("FORGE_CLIENT_ID")
 FORGE_CLIENT_SECRET = os.getenv("FORGE_CLIENT_SECRET")

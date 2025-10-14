@@ -1,0 +1,28 @@
+{
+  "id": "BotBti.BTI_SIMPLE_PROCESS",
+  "engine": "Autodesk.AutoCAD+25_1",
+  "appbundles": ["BotBti.BtiPlugin+$LATEST"],
+  "commandLine": [
+    "$(engine.path)\\accoreconsole.exe",
+    "/i", "\"$(args[inputFile].path)\"",
+    "/s", "\"$(appbundles[BtiPlugin].path)/Contents/BTI_APPLY.lsp\"",
+    "/s", "\"$(appbundles[BtiPlugin].path)/Contents/BTI_CLEANUP.lsp\"",
+    "/o", "\"$(args[outputFile].path)\""
+  ],
+  "parameters": {
+    "inputFile": {
+      "localName": "input.dwg",
+      "verb": "get",
+      "description": "Input DWG file",
+      "required": true
+    },
+    "outputFile": {
+      "localName": "result.dwg",
+      "verb": "put",
+      "description": "Output DWG file",
+      "required": true
+    }
+  },
+  "description": "BTI Simple Process - Layer-based recognition (MARK_DOOR, MARK_WINDOW) + Cleanup"
+}
+
