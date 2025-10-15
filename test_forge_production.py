@@ -78,7 +78,7 @@ try:
     
     # 4. Запустить WorkItem
     print("\n4️⃣  Запуск Forge WorkItem...")
-    print(f"   Activity: BotBti.BtiLISPActivity+prod")
+    print(f"   Activity: BotBti.BTI_AUTO_PROCESS+prod")
     
     workitem_response = requests.post(
         "https://developer.api.autodesk.com/da/us-east/v3/workitems",
@@ -87,10 +87,10 @@ try:
             "Content-Type": "application/json"
         },
         json={
-            "activityId": "BotBti.BtiLISPActivity+prod",
+            "activityId": "BotBti.BTI_AUTO_PROCESS+prod",
             "arguments": {
-                "InputDwg": {"verb": "get", "url": input_url},
-                "OutputDwg": {"verb": "put", "url": output_url}
+                "inputFile": {"verb": "get", "url": input_url},
+                "outputFile": {"verb": "put", "url": output_url}
             }
         }
     )
