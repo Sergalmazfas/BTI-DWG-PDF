@@ -51,6 +51,15 @@ _background_loop = None
 _loop_thread = None
 queue_manager = None
 
+# Initialize queue manager at module level for Cloud Run
+try:
+    queue_manager = GCSQueueManager()
+    queue_manager._ensure_bucket_structure()
+    logger.info("✅ GCS Queue Manager initialized at module level")
+except Exception as e:
+    logger.error(f"❌ Failed to initialize GCS Queue Manager at module level: {e}")
+    queue_manager = None
+
 # --- DWG → PDF Configuration ---
 ALLOWED_EXTENSIONS = {'dwg'}  # Only DWG
 MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB

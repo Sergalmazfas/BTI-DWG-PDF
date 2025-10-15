@@ -9,13 +9,17 @@
 ;;; Автор: BTI Team
 ;;; Дата: 2025-10-14
 
-(defun BTI-InsertFromLayer (markLayer blockName / ss i n e vla pmin pmax mid)
-  "Находит объекты на слое markLayer и вставляет блок blockName в центре"
+(defun BTI-InsertFromLayer (markLayer blockName / ss i n e vla pmin pmax mid textPt)
+  "Находит объекты на слое markLayer и создает POINT-метки в центре"
   (setq ss (ssget "_X" (list (cons 8 markLayer))))
   (if ss
     (progn
       (setq n (sslength ss) i 0)
       (princ (strcat "\n🔍 Найдено объектов на слое " markLayer ": " (itoa n)))
+      
+      ;; Создаем слой для меток
+      (command "_.-LAYER" "M" "BTI_MARKERS" "C" "2" "BTI_MARKERS" "")
+      
       (while (< i n)
         (setq e (ssname ss i)
               vla (vlax-ename->vla-object e))
@@ -30,9 +34,16 @@
                               (vlax-safearray->list (vlax-variant-value pmin))
                               (vlax-safearray->list (vlax-variant-value pmax))))
             
-            ;; Вставляем блок
-            (command "_.INSERT" blockName mid 1.0 1.0 0.0)
-            (princ (strcat "\n✅ Вставлен " blockName " в точку " (vl-princ-to-string mid)))
+            ;; Вычисляем точку для текста
+            (setq textPt (list (+ (car mid) 100.0) (cadr mid)))
+            
+            ;; Создаем POINT вместо блока
+            (command "_.-POINT" mid)
+            
+            ;; Добавляем текстовую метку
+            (command "_.-TEXT" "J" "L" textPt 150.0 0.0 blockName)
+            
+            (princ (strcat "\n✅ POINT-метка " blockName " создана в точке " (vl-princ-to-string mid)))
           )
         )
         

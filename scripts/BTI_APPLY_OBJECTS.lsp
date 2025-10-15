@@ -11,24 +11,34 @@
 ;;; Автор: BTI Team
 ;;; Дата: 2025-10-14
 
-(defun BTI-InsertDoorWindow (insertType pt / blockName layer)
-  "Вставляет дверь или окно в указанную точку"
+(defun BTI-InsertDoorWindow (insertType pt / blockName layer textPt)
+  "Создает POINT-метку для двери или окна в указанной точке"
   (cond
     ((= insertType "DOOR")
       (setq blockName "BTI_DOOR"
-            layer "A-DOOR"))
+            layer "BTI_MARKERS"))
     ((= insertType "WINDOW")
       (setq blockName "BTI_WINDOW"
-            layer "A-WINDOW"))
+            layer "BTI_MARKERS"))
     (T
       (setq blockName nil))
   )
   
   (if blockName
     (progn
-      (command "_.LAYER" "M" layer "")
-      (command "_.-INSERT" blockName pt 1.0 1.0 0.0)
-      (princ (strcat "\n   ✅ " blockName " вставлен"))
+      ;; Создаем слой для меток если его нет
+      (command "_.LAYER" "M" layer "C" "2" layer "")
+      
+      ;; Вычисляем точку для текста
+      (setq textPt (list (+ (car pt) 100.0) (cadr pt)))
+      
+      ;; Создаем POINT вместо блока
+      (command "_.-POINT" pt)
+      
+      ;; Добавляем текстовую метку
+      (command "_.-TEXT" "J" "L" textPt 150.0 0.0 blockName)
+      
+      (princ (strcat "\n   ✅ POINT-метка " blockName " создана"))
     )
   )
 )

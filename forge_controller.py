@@ -4,6 +4,7 @@ AutoDesk Design Automation for AutoCAD (DA4A) Controller
 """
 
 import json
+import os
 import time
 import requests
 import base64
@@ -37,6 +38,11 @@ class ForgeController:
         
         # Метрики
         self.metrics = ForgeMetrics()
+        
+        # Buckets and activity from env
+        self.bucket_input = os.getenv("GCS_BUCKET_INPUT", "btibot-queue")
+        self.bucket_output = os.getenv("GCS_BUCKET_OUTPUT", "btibot-processed")
+        self.activity_name = os.getenv("ACTIVITY_NAME", "BotBti.BTI_AUTO_PROCESS_POINT+v1")
     
     def get_access_token(self) -> str:
         """Получает access token для AutoDesk API"""
@@ -87,14 +93,13 @@ class ForgeController:
             logger.error(f"❌ Ошибка получения секрета {secret_name}: {e}")
             raise
     
-    def create_signed_urls(self, input_blob_path: str, output_blob_path: str, 
-                          template_blob_path: str) -> Dict[str, str]:
+    def create_signed_urls(self, input_bucket: str, input_blob_path: str, output_bucket: str, output_blob_path: str, 
+                          template_bucket: str, template_blob_path: str) -> Dict[str, str]:
         """Создает signed URLs для GCS объектов"""
         try:
-            bucket = self.storage_client.bucket("btibot-processed")
-            
             # Signed URL для входного файла (read)
-            input_blob = bucket.blob(input_blob_path)
+            in_bucket = self.storage_client.bucket(input_bucket)
+            input_blob = in_bucket.blob(input_blob_path)
             input_url = input_blob.generate_signed_url(
                 version="v4",
                 expiration=datetime.now() + timedelta(hours=2),
@@ -102,7 +107,8 @@ class ForgeController:
             )
             
             # Signed URL для выходного файла (write)
-            output_blob = bucket.blob(output_blob_path)
+            out_bucket = self.storage_client.bucket(output_bucket)
+            output_blob = out_bucket.blob(output_blob_path)
             output_url = output_blob.generate_signed_url(
                 version="v4",
                 expiration=datetime.now() + timedelta(hours=2),
@@ -110,7 +116,8 @@ class ForgeController:
             )
             
             # Signed URL для шаблона (read)
-            template_blob = bucket.blob(template_blob_path)
+            tpl_bucket = self.storage_client.bucket(template_bucket)
+            template_blob = tpl_bucket.blob(template_blob_path)
             template_url = template_blob.generate_signed_url(
                 version="v4",
                 expiration=datetime.now() + timedelta(hours=2),
@@ -135,18 +142,29 @@ class ForgeController:
             # Получаем токен
             access_token = self.get_access_token()
             
-            # Создаем signed URLs
-            input_blob_path = job_data['dwg'].replace('gs://btibot-processed/', '')
-            output_blob_path = f"ready/{job_data['chat_id']}/{job_data['job_id']}/bti_ready.dwg"
+            # Определяем пути и buckets
+            input_uri = job_data['dwg']  # ожидается gs://bucket/path
+            input_bucket_name = self.bucket_input
+            input_blob_path = input_uri
+            if input_uri.startswith("gs://"):
+                # разбор gs://bucket/key
+                parts = input_uri.replace("gs://", "").split("/", 1)
+                if len(parts) == 2:
+                    input_bucket_name, input_blob_path = parts[0], parts[1]
+            output_bucket_name = self.bucket_output
+            output_blob_path = f"ready/{job_data.get('chat_id','anon')}/{job_data['job_id']}/bti_ready.dwg"
+            template_bucket_name = self.bucket_output
             template_blob_path = f"templates/{job_data['template']}/bti_template.dwt"
             
             signed_urls = self.create_signed_urls(
-                input_blob_path, output_blob_path, template_blob_path
+                input_bucket_name, input_blob_path,
+                output_bucket_name, output_blob_path,
+                template_bucket_name, template_blob_path
             )
             
             # Формируем payload для Forge API
             forge_payload = {
-                "activityId": "btiProcessor.AutoCAD+prod",
+                "activityId": self.activity_name,
                 "arguments": {
                     "inputFile": {
                         "verb": "get",

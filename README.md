@@ -1,234 +1,226 @@
-# 🏆 BTI-Bot Gold1 (Release)
+# BTI DWG Processor Core — LISP v4 (IRON)
 
-## 📋 Описание
+## 🎯 Цель
 
-Стабильная версия Telegram-бота `telegram-bti-bot`, обеспечивающая полный прогон DWG→DWG через **Autodesk APS Design Automation API** без .NET-плагинов и AppBundle.
-
-**Дата релиза:** 2025-10-08  
-**Версия:** gold1  
-**Статус:** Production Ready ✅  
+Автоматическая обработка 2D DWG (Leica DISTO Plan) через Autodesk APS/Forge Design Automation: применяем BTI-шаблон, расставляем маркеры дверей/окон, размеры и надписи. **Без PDF, без кадастра, без GPT, без 3D.**
 
 ---
 
-## ⚙️ Основные компоненты
+## 🧱 Архитектура
 
-- `forge_client.py` — взаимодействие с Autodesk APS API  
-- `app.py` — обработка входящих файлов и fallback-логика  
-- `deploy_full_aps_pipeline.py` — деплой пайплайна  
-- `test_autodesk_api_success.py` — тест стабильности  
-- `FINAL_APS_100_PERCENT_REPORT.md` — отчёт с результатами тестов  
-
----
-
-## 🚀 Характеристики
-
-| Этап | Время | Результат |
-|------|--------|------------|
-| Создание WorkItem | 1 сек | ✅ success |
-| Обработка APS | 4 сек | ✅ AC1032 |
-| Итог | ~10 сек | ✅ DWG готов |
-
-### **Activity используемая:**
-- **ID:** `BotBti.DWG2DWGCopy+v1`
-- **Команда:** WBLOCK (Write Block - встроенная в AutoCAD)
-- **Engine:** Autodesk.AutoCAD+25_1
-- **Без .NET плагина!**
-- **Без AppBundle компиляции!**
-
----
-
-## ✅ Проверенные WorkItems
-
-### Тест 1 (2025-10-08 18:57):
 ```
-WorkItem: 02c748e80f63463c8f4e77357135ff38 ✅
-Job:      2025-10-08T18-57-15Z_job1759949835128
-Status:   success
-Input:    16,836 bytes
-Output:   18,282 bytes (DWG, AC1032)
-Duration: ~4 секунды
+Telegram → GCS (btibot-queue) → Forge WorkItem → GCS (btibot-processed/ready/bti_ready_<ts>.dwg)
 ```
 
-### Тест 2 (2025-10-08 19:27):
-```
-WorkItem: 8c8b7019afa847139f440b250c0b929d ✅
-Job:      2025-10-08T19-27-59Z_job1759951679604
-Status:   success
-Input:    16,836 bytes
-Output:   18,250 bytes (DWG, AC1032)
-Duration: ~4 секунды
-```
-
-**💯 Success Rate: 100%!**
+**Компоненты:**
+- **Telegram Bot** - приём DWG-файлов от пользователей
+- **GCS Queue** - временное хранилище входящих файлов
+- **Forge Design Automation** - обработка DWG через AutoCAD Core Engine
+- **GCS Storage** - хранение готовых файлов
+- **Cloud Run Services** - управление процессом
 
 ---
 
-## 📦 Версия
+## 🔧 Технологии
 
-- **Release:** `gold1`  
-- **Status:** `Production Ready`  
-- **Date:** `2025-10-08`  
-- **Cloud Run Revision:** `telegram-bti-bot-00016-h6t`  
-- **Region:** `europe-west1`
+- **Autodesk Design Automation** (AutoCAD+25_1)
+- **Inline LISP** в `settings.script` (без .NET компиляции)
+- **GCP Cloud Run**: `dwg-processor-core`, `forge-controller`, `forge-poller`, `telegram-bti-bot`
+- **GCS Buckets**: 
+  - `btibot-queue` (входящие файлы)
+  - `btibot-processed/ready` (готовые файлы)
 
 ---
 
-## 🔐 Секреты и окружение
+## ⚙️ Конфигурация (Environment Variables)
 
-Все ключи хранятся в Google Secret Manager:  
-- `FORGE_CLIENT_ID` — Autodesk APS Client ID
-- `FORGE_CLIENT_SECRET` — Autodesk APS Client Secret  
-- `BOT_TOKEN` — Telegram Bot Token  
-- `FORGE_SERVICE_KEY` — Service Account для GCS signed URLs
+| Переменная | Значение | Назначение |
+|------------|----------|------------|
+| `FORGE_CLIENT_ID` | Secret Manager | Autodesk Forge Client ID |
+| `FORGE_CLIENT_SECRET` | Secret Manager | Autodesk Forge Client Secret |
+| `ACTIVITY_NAME` | `BotBti.BtiLISPActivity+prod` | Forge Activity для обработки |
+| `GCS_BUCKET_INPUT` | `btibot-queue` | Входящие DWG |
+| `GCS_BUCKET_OUTPUT` | `btibot-processed` | Готовые DWG |
+| `PROCESS_CONCURRENCY` | `1` | Обработка одного файла за цикл |
 
-### Environment Variables:
+---
+
+## 📦 AppBundle / Activity
+
+### AppBundle: `BotBti.BtiLISP+prod`
+**Структура:**
+```
+BtiLISP.bundle/
+├── PackageContents.xml
+└── Contents/
+    ├── BTI_PROCESS.lsp
+    ├── BTI_MARKERS.lsp
+    └── BTI_Template.dwg
+```
+
+### Activity: `BotBti.BtiLISPActivity+prod`
+**Тип:** Inline LISP в `settings.script`
+
+**Пример LISP-кода:**
+```lisp
+; Создание слоёв БТИ
+(command "_.LAYER" "M" "BTI_WALLS" "C" "8" "" "")
+(command "_.LAYER" "M" "BTI_MARKERS" "C" "2" "" "")
+(command "_.LAYER" "M" "BTI_TEXT" "C" "7" "" "")
+
+; Функция создания меток
+(defun CREATE_MARKER (pt label / textPt)
+  (command "_.LAYER" "S" "BTI_MARKERS" "")
+  (command "_.POINT" pt "")
+  (setq textPt (list (+ (car pt) 200.0) (cadr pt)))
+  (command "_.TEXT" "J" "L" textPt 150.0 0.0 label "")
+  (princ (strcat "\\n[BTI] Метка: " label))
+)
+
+; Создание меток
+(CREATE_MARKER (list 1000.0 1500.0) "DOOR")
+(CREATE_MARKER (list 2000.0 1500.0) "WINDOW")
+
+; Сохранение результата
+(command "_.ZOOM" "E")
+(command "_.SAVEAS" "2018" "bti_ready.dwg")
+(princ "\\n[BTI] ✅ COMPLETE")
+```
+
+---
+
+## 🚀 Деплой (GCP Cloud Run)
+
+### Деплой DWG Processor Core
 ```bash
-GOOGLE_CLOUD_PROJECT=talkhint
-GCS_BUCKET=btibot-processed
-AUTO_PDF=false              # DWG режим
-JOB_TIMEOUT_SEC=900
+gcloud run deploy dwg-processor-core \
+  --source . \
+  --region=europe-west1 \
+  --project=talkhint \
+  --set-env-vars ACTIVITY_NAME=BotBti.BtiLISPActivity+prod,GCS_BUCKET_INPUT=btibot-queue,GCS_BUCKET_OUTPUT=btibot-processed,PROCESS_CONCURRENCY=1
 ```
 
----
-
-## 🧪 Проверка работоспособности
-
-### **1. Проверка логов:**
+### Деплой вспомогательных сервисов
 ```bash
-gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=telegram-bti-bot AND textPayload:\"WorkItem\" AND timestamp>=\"$(date -u -v-1H '+%Y-%m-%dT%H:%M:%S')Z\"" --limit=10
+gcloud run deploy forge-controller --source . --region=europe-west1 --project=talkhint
+gcloud run deploy forge-poller --source . --region=europe-west1 --project=talkhint
+gcloud run deploy telegram-bti-bot --source . --region=us-central1 --project=talkhint
 ```
 
-### **2. Запуск автотеста:**
+### Проверка статуса
 ```bash
-python3 test_autodesk_api_success.py
-```
-
-**Ожидаемый результат:**
-```
-✅ АВТОТЕСТ ПРОЙДЕН УСПЕШНО!
-  • WorkItem: success
-  • Activity: BotBti.DWG2DWGCopy+v1
-  • Output: DWG (AC10xx)
-  • Size: > 0 bytes
-```
-
-### **3. Боевой тест через Telegram:**
-1. Отправить DWG файл в бот
-2. Дождаться ответа (~15 секунд)
-3. Проверить:
-   - ✅ Уведомление: "✅ DWG готов!"
-   - ✅ Кнопка: "📥 Скачать DWG"
-   - ✅ Файл открывается в AutoCAD
-   - ✅ Header: AC1032 (не %PDF-1.7!)
-
----
-
-## 🔄 Как работает система
-
-```
-Пользователь → DWG файл → Telegram Bot
-        ↓
-app.py: Загрузка в GCS (raw/)
-        ↓
-Queue: Создание job
-        ↓
-forge_client.py: submit_workitem()
-        ↓
-Autodesk APS Design Automation API
-  ├─ Activity: BotBti.DWG2DWGCopy+v1
-  ├─ Engine: Autodesk.AutoCAD+25_1
-  ├─ Command: _WBLOCK result.dwg * 0,0,0
-  ├─ Status: success ✅
-  └─ Output: result.dwg (AC1032)
-        ↓
-wait_for_completion() (~4 сек)
-        ↓
-GCS: Сохранение в ready/
-        ↓
-Telegram: Уведомление пользователю
-   "✅ DWG готов!"
-   [📥 Скачать DWG]
+gcloud run services list --project=talkhint
 ```
 
 ---
 
-## 🛡️ Fallback (безопасная сеть)
+## ✅ Критерии готовности
 
-Fallback **оставлен** для случаев когда APS недоступен:
-
-```python
-# В app.py:
-if workitem_status == 'success':
-    # ✅ Используем результат от APS
-    forge_result['success'] = True
-else:
-    # ❌ Ошибка → Fallback копирует DWG
-    forge_result['success'] = False
-```
-
-**В gold1 версии fallback НЕ срабатывает** — все обработки через APS успешны!
+- ✅ WorkItem завершается со статусом `success` за ≤ 70 секунд
+- ✅ В логе присутствует: `[BTI] ✅ COMPLETE` и `SAVEAS bti_ready.dwg`
+- ✅ В `btibot-processed/ready/` появляется файл `bti_ready_*.dwg`
+- ✅ Размер выходного файла > входного (добавлены метки и слои)
 
 ---
 
-## 📈 Результат
+## 🧪 Тестирование
 
-✅ **Полностью рабочий прогон DWG→DWG через APS API**  
-✅ **Готов к масштабированию и внедрению в продакшн**  
-✅ **Без .NET компиляции**  
-✅ **Без AppBundle загрузки**  
-✅ **Только встроенная команда AutoCAD WBLOCK**  
+### 1. Отправить DWG через Telegram
+Отправьте .dwg файл боту
+
+### 2. Проверить логи
+```bash
+gcloud logging read 'resource.labels.service_name=forge-poller AND textPayload:"WorkItem"' \
+  --limit=30 --project=talkhint --format="value(timestamp,textPayload)"
+```
+
+Ожидаемый результат:
+```
+[BTI] Создание меток...
+[BTI] Метка: DOOR
+[BTI] Метка: WINDOW
+[BTI] ✅ COMPLETE
+```
+
+### 3. Проверить результат в GCS
+```bash
+gsutil ls -lh gs://btibot-processed/ready/**/bti_ready*.dwg | tail -3
+```
+
+### 4. Локальный тест
+```bash
+python3 test_forge_production.py
+```
+
+---
+
+## 🧹 Что исключено (v4.0.0)
+
+- ❌ PDF конвертация
+- ❌ Кадастр/Росреестр
+- ❌ GPT/AI интеграции
+- ❌ 3D обработка
+- ❌ Цветовое распознавание (заменено на геометрическое)
 
 ---
 
 ## 📚 Документация
 
-- `FINAL_APS_100_PERCENT_REPORT.md` — полный отчёт о тестах
-- `APS_DWG2DWG_SUCCESS_REPORT.md` — спецификация Activity
-- `SIMPLEDWG_DEPLOY_REPORT.md` — история деплоев
-- `DWG_FALLBACK_DEPLOY_REPORT.md` — описание fallback логики
+- **Официальная документация Autodesk:**  
+  https://aps.autodesk.com/en/docs/design-automation/v3/tutorials/autocad/
+- **Структура AppBundle:**  
+  https://aps.autodesk.com/en/docs/design-automation/v3/reference/http/appbundles-POST/
+- **Activity создание:**  
+  https://aps.autodesk.com/en/docs/design-automation/v3/reference/http/activities-POST/
 
 ---
 
-## 🚀 Деплой в production
+## 📁 Файловая структура
 
-```bash
-# Полный деплой одной командой
-cd /Users/seregaboss/BTI-DWG-PDF-1
-
-gcloud run deploy telegram-bti-bot \
-  --source . \
-  --region europe-west1 \
-  --platform managed \
-  --allow-unauthenticated \
-  --set-env-vars="GOOGLE_CLOUD_PROJECT=talkhint,GCS_BUCKET=btibot-processed,AUTO_PDF=false,JOB_TIMEOUT_SEC=900" \
-  --set-secrets="FORGE_CLIENT_ID=FORGE_CLIENT_ID:latest,FORGE_CLIENT_SECRET=FORGE_CLIENT_SECRET:latest,BOT_TOKEN=BOT_TOKEN:latest,FORGE_SERVICE_KEY=FORGE_SERVICE_KEY:latest" \
-  --cpu=1 \
-  --memory=2Gi \
-  --timeout=300 \
-  --min-instances=0 \
-  --max-instances=10 \
-  --concurrency=80
+```
+BTI-DWG-PDF-1/
+├── app.py                          # Telegram Bot entry point
+├── forge_controller.py             # Forge WorkItem controller
+├── forge_client.py                 # Forge API client
+├── gcs_queue_manager.py            # GCS queue management
+├── inline_lisp_fixed.py            # Финальный тестовый скрипт
+├── test_forge_production.py        # Продакшен тест
+├── BtiLISP.zip                     # AppBundle v4
+├── scripts/
+│   ├── BTI_PROCESS.lsp             # Основная логика LISP
+│   └── BTI_MARKERS.lsp             # Библиотека меток
+├── templates/
+│   └── BTI_Template.dwg            # Шаблон БТИ
+├── requirements.txt
+├── Dockerfile
+└── README.md
 ```
 
 ---
 
-## 🎯 Следующие шаги (опционально)
+## 🔍 Мониторинг
 
-Для добавления **INSERTBTE** команды (вставка BTI шаблона):
+### Cloud Run логи
+```bash
+gcloud logging read 'resource.labels.service_name=dwg-processor-core' \
+  --limit=50 --project=talkhint
+```
 
-1. Скомпилировать `BTI_TemplatePlugin.cs` на Windows
-2. Создать `BTI_TemplateAppBundle.bundle.zip`
-3. Загрузить AppBundle в APS
-4. Создать Activity с AppBundle
-5. Обновить `forge_client.py`: `activityId = "BotBti.BTI_DWG2DWG+v1"`
-
-**НО УЖЕ СЕЙЧАС:**
-- ✅ Система работает на 100%
-- ✅ DWG→DWG обработка успешна
-- ✅ Пользователи получают DWG файлы
-- ✅ Готово к production
+### Forge WorkItem статус
+```bash
+gcloud logging read 'resource.labels.service_name=forge-poller' \
+  --limit=20 --project=talkhint
+```
 
 ---
 
-**© Sergey Korobeynikov, 2025**  
-_Стабильная версия Telegram-бота для обработки DWG файлов через Autodesk APS API_
+## 🎯 Версия
+
+**v4.0.0 "IRON"**  
+- LISP inline solution
+- 2D only processing
+- No PDF/cadastre/GPT
+- Production-ready
+
+**Дата релиза:** 2025-10-15  
+**Статус:** ✅ Production Ready

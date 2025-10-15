@@ -1,0 +1,139 @@
+---
+alwaysApply: true
+---
+
+# 🧭 CONTEXT: DWG Processor Core (BTI_AUTO_PROCESS)
+
+## 🎯 Цель проекта
+
+DWG-бот получает исходные чертежи, созданные с помощью Leica DISTO Plan,  
+обрабатывает их в Autodesk Forge (Design Automation),  
+применяет типовой шаблон БТИ и формирует итоговый DWG-файл `bti_ready.dwg`.
+
+> ❗ Этот проект **не связан** с кадастровыми данными, Росреестром, GPT-чатом или PDF-документами.  
+> Выполняется исключительно DWG-обработка.
+
+---
+
+## ⚙️ Архитектура
+
+### Cloud Run сервисы (`project=talkhint`)
+
+| Сервис | Назначение | Регион |
+|---------|-------------|--------|
+| `telegram-bti-bot` | Приём DWG-файлов из Telegram и постановка задач в очередь | `us-central1` |
+| `dwg-processor-core` | Основной обработчик DWG через Autodesk Forge (Design Automation) | `europe-west1` |
+| `forge-controller` | Управление запуском Forge Activity и AppBundle | `europe-west1` |
+| `forge-poller` | Отслеживание статусов WorkItem Forge | `europe-west1` |
+
+---
+
+## ☁️ Хранилища (Google Cloud Storage)
+
+| Бакет | Назначение |
+|--------|-------------|
+| `btibot-queue` | Входящие DWG-файлы (Leica/Disto Plan) |
+| `btibot-processed` | Готовые DWG-файлы (`bti_ready.dwg`) |
+| `bti-bot-processed` | Резервный или тестовый вывод |
+
+---
+
+## 📂 Основные компоненты
+
+| Компонент | Расположение | Назначение |
+|------------|--------------|-------------|
+| `app.py` | корень | Точка входа Cloud Run / Telegram бота |
+| `forge_controller.py` | корень | запуск Activity и WorkItem Forge |
+| `templates/BTI_Template.dwg` | `templates/` | типовой шаблон БТИ |
+| `BtiPlugin_auto.zip` | корень | пакет Forge AppBundle |
+| `BotBti.BTI_AUTO_PROCESS+prod` | Autodesk Forge | основной Activity |
+| `bti_ready.dwg` | GCS → `ready/` | результат обработки |
+
+---
+
+## 🧮 Процесс обработки
+
+1. Пользователь отправляет DWG → файл сохраняется в `btibot-queue/`.
+2. `dwg-processor-core` запускает WorkItem Forge (`BotBti.BTI_AUTO_PROCESS+prod`).
+3. Внутри Forge:
+   - DWG открывается в `accoreconsole.exe`.
+   - Подключается шаблон `BTI_Template.dwg`.
+   - Генерируются стены, проёмы, слои, точки и метки (через .NET плагин).
+4. Готовый `bti_ready.dwg` отправляется в `btibot-processed/ready/`.
+5. `forge-poller` обновляет лог и статус выполнения.
+
+---
+
+## 🚀 Деплой
+
+```bash
+# DWG Processor Core
+gcloud run deploy dwg-processor-core \
+  --source . \
+  --region=europe-west1 \
+  --project=talkhint
+
+# Telegram BTI Bot
+gcloud run deploy telegram-bti-bot \
+  --source . \
+  --region=us-central1 \
+  --project=talkhint
+
+# Проверка:
+gcloud run services list --project=talkhint
+gcloud logging read "resource.labels.service_name=dwg-processor-core" --limit=20
+```
+
+---
+
+## 🔒 Переменные окружения
+
+| Переменная | Значение / назначение |
+|------------|----------------------|
+| `FORGE_CLIENT_ID`, `FORGE_CLIENT_SECRET` | Ключи Autodesk Forge |
+| `GCS_BUCKET_INPUT` | `btibot-queue` - Входящие DWG |
+| `GCS_BUCKET_OUTPUT` | `btibot-processed` - Готовые DWG |
+| `APPBUNDLE_NAME` | `BtiPlugin_auto.zip` - Пакет Design Automation |
+| `ACTIVITY_NAME` | `BotBti.BTI_AUTO_PROCESS+prod` - Основной Activity |
+
+---
+
+## 🧠 Правила для Cursor
+
+1. Работай только с DWG-процессом.
+2. Не используй GPT-API, не запрашивай данные Росреестра, не создавай PDF.
+3. Проверяй пути к шаблону и бакетам перед деплоем.
+4. При ошибках INSERT используй замену через POINT или .NET-плагин.
+5. Всегда считывай этот файл при старте, чтобы понимать контекст.
+6. Текущий активный AppBundle: `BtiPlugin_auto.zip` (с .NET плагином)
+7. Текущий активный Activity: `BotBti.BTI_AUTO_PROCESS+prod`
+
+---
+
+## ✅ Критерии готовности
+
+- ✅ В логах Forge нет ошибок `Insert failed`
+- ✅ `bti_ready.dwg` создаётся < 70 сек.
+- ✅ В файле корректно применён шаблон и структура БТИ.
+- ✅ AppBundle с .NET плагином успешно загружен
+- ✅ Activity alias `prod` активен
+
+---
+
+## 🚦 ACTIVE PROJECT: DWG_PROCESSOR_CORE
+
+Cursor должен использовать контекст: DWG Processor
+
+🔹 Не обращаться к файлам других проектов  
+🔹 Не использовать GPT / Росреестр / PDF  
+🔹 Все команды деплоя направлять в сервисы:
+  - `dwg-processor-core`
+  - `telegram-bti-bot`
+  - `forge-controller`
+  - `forge-poller`
+
+🔹 Работать в проекте Google Cloud: `talkhint`
+
+---
+
+Этот контекст предназначен только для ветки DWG-бота и не связан с другими проектами.

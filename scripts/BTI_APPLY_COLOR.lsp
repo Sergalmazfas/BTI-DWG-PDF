@@ -13,10 +13,13 @@
 ;;; Дата: 2025-10-14
 ;;; Версия: 2.0 (Color-based)
 
-(defun BTI-InsertByColor (/ ss i n e vla color pmin pmax mid blockName inserted)
-  "Находит объекты по цветам и вставляет соответствующие блоки БТИ"
+(defun BTI-InsertByColor (/ ss i n e vla color pmin pmax mid blockName inserted textPt)
+  "Находит объекты по цветам и создает POINT-метки"
   (setq ss (ssget "_X"))
   (setq inserted 0)
+  
+  ;; Создаем слой для меток
+  (command "_.-LAYER" "M" "BTI_MARKERS" "C" "2" "BTI_MARKERS" "")
   
   (if ss
     (progn
@@ -40,7 +43,7 @@
                               (vlax-safearray->list (vlax-variant-value pmin))
                               (vlax-safearray->list (vlax-variant-value pmax))))
             
-            ;; Определяем блок по цвету и вставляем
+            ;; Определяем метку по цвету
             (setq blockName nil)
             (cond
               ((= color 5)  (setq blockName "BTI_WINDOW"))   ;; 🟦 Синий - окно
@@ -50,12 +53,20 @@
               ((= color 6)  (setq blockName "BTI_SHOWER"))   ;; 🟪 Фиолетовый - душ
             )
             
-            ;; Вставляем блок если определен
+            ;; Создаем POINT + TEXT метку если определена
             (if blockName
               (progn
-                (command "_.-INSERT" blockName mid 1.0 1.0 0.0)
+                ;; Вычисляем точку для текста
+                (setq textPt (list (+ (car mid) 100.0) (cadr mid)))
+                
+                ;; Создаем POINT
+                (command "_.-POINT" mid)
+                
+                ;; Добавляем текстовую метку
+                (command "_.-TEXT" "J" "L" textPt 150.0 0.0 blockName)
+                
                 (setq inserted (1+ inserted))
-                (princ (strcat "\n  ✅ Цвет " (itoa color) " → " blockName))
+                (princ (strcat "\n  ✅ Цвет " (itoa color) " → POINT " blockName))
               )
             )
           )
@@ -64,7 +75,7 @@
         (setq i (1+ i))
       )
       
-      (princ (strcat "\n\n📊 Всего вставлено блоков: " (itoa inserted)))
+      (princ (strcat "\n\n📊 Всего создано POINT-меток: " (itoa inserted)))
     )
     (princ "\n⚠️  Объекты не найдены")
   )
