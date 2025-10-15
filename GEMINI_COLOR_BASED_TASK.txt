@@ -1,0 +1,165 @@
+╔══════════════════════════════════════════════════════════════╗
+║    🎨 ФИНАЛЬНАЯ ЗАДАЧА: AppBundle с цветовым распознаванием  ║
+╚══════════════════════════════════════════════════════════════╝
+
+Задача: Создать AppBundle с LISP для распознавания объектов по ЦВЕТАМ
+
+Концепция:
+- Leica DISTO размечает объекты цветами (синий=окно, оранжевый=дверь)
+- LISP скрипт распознает цвета и вставляет блоки БТИ
+- НЕ требует .NET, AI, или Computer Vision
+- Работает в Forge AutoCAD Core
+
+Credentials:
+- APS_CLIENT_ID: m6CK3EHpibW1XrHpPFiOfs83BCfp0zHDGtaAc6vcLatU6Pp4
+- APS_CLIENT_SECRET: tm9AyCWiSGmBytA1VVhXMrZu4hKsGFUudPDae9bdboHWstG08ySRITBYNGt1nRjW
+
+═══════════════════════════════════════════════════════════════
+
+ШАГ 1: Скачать все необходимые файлы
+
+# Создать директории
+New-Item -Path "C:\BTI-DWG-PDF\scripts" -ItemType Directory -Force
+New-Item -Path "C:\out" -ItemType Directory -Force
+
+# Скачать LISP скрипты
+Invoke-WebRequest -Uri "https://storage.googleapis.com/btibot-processed/scripts/BTI_APPLY_COLOR.lsp" -OutFile "C:\BTI-DWG-PDF\scripts\BTI_APPLY_COLOR.lsp"
+Invoke-WebRequest -Uri "https://storage.googleapis.com/btibot-processed/scripts/BTI_APPLY.lsp" -OutFile "C:\BTI-DWG-PDF\scripts\BTI_APPLY.lsp"
+Invoke-WebRequest -Uri "https://storage.googleapis.com/btibot-processed/scripts/BTI_CLEANUP.lsp" -OutFile "C:\BTI-DWG-PDF\scripts\BTI_CLEANUP.lsp"
+
+# Скачать конфигурацию
+Invoke-WebRequest -Uri "https://storage.googleapis.com/btibot-processed/config/bti_color_mapping.json" -OutFile "C:\BTI-DWG-PDF\config\bti_color_mapping.json"
+
+# Скачать Python скрипт для загрузки в APS
+Invoke-WebRequest -Uri "https://storage.googleapis.com/btibot-processed/scripts/upload_bti_appbundle_windows.py" -OutFile "C:\BTI-DWG-PDF\upload_appbundle.py"
+
+Write-Host "✅ Все файлы скачаны"
+
+═══════════════════════════════════════════════════════════════
+
+ШАГ 2: Создать AppBundle структуру (БЕЗ компиляции .NET)
+
+# Создаем bundle только с LISP (работает без AutoCAD!)
+New-Item -Path "C:\out\BtiPlugin.bundle\Contents" -ItemType Directory -Force
+
+# Копируем LISP скрипты
+Copy-Item "C:\BTI-DWG-PDF\scripts\BTI_APPLY_COLOR.lsp" -Destination "C:\out\BtiPlugin.bundle\Contents\"
+Copy-Item "C:\BTI-DWG-PDF\scripts\BTI_APPLY.lsp" -Destination "C:\out\BtiPlugin.bundle\Contents\"
+Copy-Item "C:\BTI-DWG-PDF\scripts\BTI_CLEANUP.lsp" -Destination "C:\out\BtiPlugin.bundle\Contents\"
+
+# Копируем шаблон (если есть на VM)
+Copy-Item "C:\BTI-DWG-PDF\bti_basmanny_template.dwg" -Destination "C:\out\BtiPlugin.bundle\Contents\" -ErrorAction SilentlyContinue
+
+# Проверить
+Write-Host "`n📦 Содержимое bundle:"
+Get-ChildItem "C:\out\BtiPlugin.bundle\Contents" | Format-Table Name, Length
+
+═══════════════════════════════════════════════════════════════
+
+ШАГ 3: Создать PackageContents.xml (упрощенный для LISP)
+
+$xml = @"
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage SchemaVersion="1.0" Version="1.0" AutodeskProduct="AutoCAD">
+  <Components Description="BTI Color-Based Processor">
+    <RuntimeRequirements OS="Win64" Platform="AutoCAD" />
+  </Components>
+</ApplicationPackage>
+"@
+
+Set-Content "C:\out\BtiPlugin.bundle\PackageContents.xml" -Value $xml -Encoding UTF8
+
+Write-Host "✅ PackageContents.xml создан (LISP-only версия)"
+
+═══════════════════════════════════════════════════════════════
+
+ШАГ 4: Создать ZIP
+
+Compress-Archive -Path "C:\out\BtiPlugin.bundle" -DestinationPath "C:\out\BtiPlugin.zip" -Force
+
+# Проверить
+$zip = Get-Item "C:\out\BtiPlugin.zip"
+$hash = Get-FileHash "C:\out\BtiPlugin.zip" -Algorithm SHA256
+
+Write-Host "`n✅ ZIP создан:"
+Write-Host "   Размер: $([math]::Round($zip.Length/1KB, 2)) KB"
+Write-Host "   SHA256: $($hash.Hash)"
+
+# Показать содержимое
+Write-Host "`n📦 Содержимое:"
+Expand-Archive "C:\out\BtiPlugin.zip" -DestinationPath "C:\temp\check_bundle" -Force
+Get-ChildItem "C:\temp\check_bundle\BtiPlugin.bundle\Contents" | Format-Table Name, Length
+
+═══════════════════════════════════════════════════════════════
+
+ШАГ 5: Загрузить в Autodesk APS
+
+# Установить credentials
+$env:APS_CLIENT_ID = "m6CK3EHpibW1XrHpPFiOfs83BCfp0zHDGtaAc6vcLatU6Pp4"
+$env:APS_CLIENT_SECRET = "tm9AyCWiSGmBytA1VVhXMrZu4hKsGFUudPDae9bdboHWstG08ySRITBYNGt1nRjW"
+
+# Загрузить через Python скрипт
+python C:\BTI-DWG-PDF\upload_appbundle.py --bundle C:\out\BtiPlugin.zip --appname BtiPlugin --alias v1
+
+═══════════════════════════════════════════════════════════════
+
+ОЖИДАЕМЫЙ РЕЗУЛЬТАТ:
+
+✅ AppBundle BotBti.BtiPlugin+v1 создан
+✅ Содержит:
+   - BTI_APPLY_COLOR.lsp (6.3 KB) 🎨 НОВОЕ!
+   - BTI_APPLY.lsp (4.4 KB)
+   - BTI_CLEANUP.lsp (2.6 KB)
+   - bti_basmanny_template.dwg (51.2 KB)
+
+✅ Загружен в Autodesk APS
+✅ Alias v1 создан
+✅ Готов к использованию в Activity
+
+Python скрипт покажет:
+╔══════════════════════════════════════════════════════════╗
+║              ✅ УСПЕХ! APPBUNDLE ЗАГРУЖЕН!              ║
+╚══════════════════════════════════════════════════════════╝
+📋 AppBundle ID: BotBti.BtiPlugin+v1
+
+═══════════════════════════════════════════════════════════════
+
+ЦВЕТОВАЯ СХЕМА LEICA → BTI:
+
+🟦 Синий (5)      → BTI_WINDOW  (окно)
+🟧 Оранжевый (30) → BTI_DOOR    (дверь)
+🟩 Зеленый (3)    → BTI_TOILET  (унитаз)
+🟥 Красный (1)    → BTI_SINK    (раковина)
+🟪 Фиолетовый (6) → BTI_SHOWER  (душ)
+⚪ Белый (7)      → A-WALL      (стены, без вставки)
+
+═══════════════════════════════════════════════════════════════
+
+ВАЖНО:
+
+Это решение НЕ требует:
+❌ AutoCAD на VM (для LISP bundle)
+❌ .NET компиляцию
+❌ AI или Computer Vision
+❌ Сложную настройку
+
+Требует только:
+✅ LISP скрипты (готовы в GCS)
+✅ Цветовую разметку от Leica
+✅ Типовые блоки БТИ в шаблоне
+
+═══════════════════════════════════════════════════════════════
+
+ПУБЛИЧНЫЕ URL:
+
+BTI_APPLY_COLOR.lsp:
+https://storage.googleapis.com/btibot-processed/scripts/BTI_APPLY_COLOR.lsp
+
+Цветовая схема:
+https://storage.googleapis.com/btibot-processed/config/bti_color_mapping.json
+
+Python скрипт:
+https://storage.googleapis.com/btibot-processed/scripts/upload_bti_appbundle_windows.py
+
+╚══════════════════════════════════════════════════════════════╝
+

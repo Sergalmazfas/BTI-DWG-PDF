@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archives (keep structure, ignore files)
+archives/*.zip
+archives/*.dwg
+!archives/.gitkeep
+
+# Reports (keep structure, ignore reports)
+reports/*.log
+reports/*.json
+!reports/.gitkeep
+
+# WorkItems (keep structure, but may want to commit some)
+# Uncomment if you don't want to commit workitems
+# workitems/*.json
+!workitems/.gitkeep
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Credentials (NEVER commit!)
+*credentials*.json
+*key*.json
+.env
+

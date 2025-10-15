@@ -1,0 +1,61 @@
+Copying file://bte-appbundle/archives/basmannyi_novyi_obmernyi.dwg to gs://btibot-queue/test_input/basmannyi_20251008_130831.dwg
+  
+..........
+================================================================================
+🧩 Тест BTEInsertTemplate Activity
+================================================================================
+
+📂 DWG файл: bte-appbundle/archives/basmannyi_novyi_obmernyi.dwg (52420 bytes)
+☁️  Загрузка DWG в GCS: gs://btibot-queue/test_input/basmannyi_20251008_130831.dwg
+🔗 Генерация signed URLs...
+✅ Input URL: https://storage.googleapis.com/btibot-queue/test_input/basmannyi_20251008_130831...
+✅ Output URL: https://storage.googleapis.com/btibot-processed/test_output/basmannyi_result_202...
+
+🔑 Получение токена APS...
+✅ Токен получен
+
+🚀 Создание WorkItem...
+
+🔄 Попытка с Activity: BotBti.BTEInsertTemplate+1
+📋 Payload:
+{
+  "activityId": "BotBti.BTEInsertTemplate+1",
+  "arguments": {
+    "inputFile": {
+      "url": "https://storage.googleapis.com/btibot-queue/test_input/basmannyi_20251008_130831.dwg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100834Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=0bd927cc0ab0bf4670ca251441c34093290795ae86b1a27595b52e98ed2be13764d52ef452d0c289b2315252bcbdb2d96b3ca3e5459877f0eb168b957883050189f892a2ae99201ffb44202ad44eca8525453947bb9baf14081324d7dd61714d715dad1daa6e21eeb87ef542f62ab475e5464e689e60adaa1a19911508492c618133c06aedf79981c84826928b57308f50d5fd1ebfd134c697bd4ab7f47ca59e8665b251e32c4af22395965bfd7e327ec021b0aee203cef4f430968796c9a88c9f4cb2e6fb97a97f5c0c80ad98fa2aac717d03038fc4a23d31e71a4a12c2309c9fc5f354e6b937219923aa666cbed31d591a7b543f5eba3e7187dce279792120"
+    },
+    "resultFile": {
+      "url": "https://storage.googleapis.com/btibot-processed/test_output/basmannyi_result_20251008_130831.dwg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100834Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=content-type%3Bhost&X-Goog-Signature=111f416122b52e82b3eadbf4d3965801c7752966e0c95ef861164f34bf582c0d1704e83bbbc125ba6b255779b2f88f70fbfe9ebb056b057293ce63cfd84492e370f6130317b703fc5b1ebd266bc1cb36020306db89aa0a7884ad17a47114bde1af09f35d947bd7d4f0b1db8272fb2875173b94933144a0796832b4a71601ecb681ccadf5246a1e634c1cf9563d49aef4924247ac0d25a80f0d801e720b69e25786c52415e63d087e12e900402d84ce00aa3ba281250edca2058235fa343f22930891cb148732d0c0a565a6de962950165a94fd0734b93c5690a590ee8f101ff0f072e354e6b5bcb036dfdc88d1cfb7224d850f44758987a3028f254463910306",
+      "verb": "put"
+    }
+  }
+}
+
+❌ Ошибка создания WorkItem: 400
+{"activityId":["The activity BotBti.BTEInsertTemplate+1 could not be found (Parameter 'activityId')"]}
+
+🔄 Попытка с Activity: BotBti.BTEInsertTemplate+v1
+📋 Payload:
+{
+  "activityId": "BotBti.BTEInsertTemplate+v1",
+  "arguments": {
+    "inputFile": {
+      "url": "https://storage.googleapis.com/btibot-queue/test_input/basmannyi_20251008_130831.dwg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100834Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=0bd927cc0ab0bf4670ca251441c34093290795ae86b1a27595b52e98ed2be13764d52ef452d0c289b2315252bcbdb2d96b3ca3e5459877f0eb168b957883050189f892a2ae99201ffb44202ad44eca8525453947bb9baf14081324d7dd61714d715dad1daa6e21eeb87ef542f62ab475e5464e689e60adaa1a19911508492c618133c06aedf79981c84826928b57308f50d5fd1ebfd134c697bd4ab7f47ca59e8665b251e32c4af22395965bfd7e327ec021b0aee203cef4f430968796c9a88c9f4cb2e6fb97a97f5c0c80ad98fa2aac717d03038fc4a23d31e71a4a12c2309c9fc5f354e6b937219923aa666cbed31d591a7b543f5eba3e7187dce279792120"
+    },
+    "resultFile": {
+      "url": "https://storage.googleapis.com/btibot-processed/test_output/basmannyi_result_20251008_130831.dwg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100834Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=content-type%3Bhost&X-Goog-Signature=111f416122b52e82b3eadbf4d3965801c7752966e0c95ef861164f34bf582c0d1704e83bbbc125ba6b255779b2f88f70fbfe9ebb056b057293ce63cfd84492e370f6130317b703fc5b1ebd266bc1cb36020306db89aa0a7884ad17a47114bde1af09f35d947bd7d4f0b1db8272fb2875173b94933144a0796832b4a71601ecb681ccadf5246a1e634c1cf9563d49aef4924247ac0d25a80f0d801e720b69e25786c52415e63d087e12e900402d84ce00aa3ba281250edca2058235fa343f22930891cb148732d0c0a565a6de962950165a94fd0734b93c5690a590ee8f101ff0f072e354e6b5bcb036dfdc88d1cfb7224d850f44758987a3028f254463910306",
+      "verb": "put"
+    }
+  }
+}
+
+❌ Ошибка создания WorkItem: 400
+{"activityId":["The activity BotBti.BTEInsertTemplate+v1 could not be found (Parameter 'activityId')"]}
+
+❌ Не удалось создать WorkItem ни с одним вариантом Activity ID
+
+💡 Необходимо создать alias 'v1' через Web UI:
+   1. https://aps.autodesk.com
+   2. My Apps → Design Automation → AutoCAD
+   3. Activities → BTEInsertTemplate → Aliases → Create
+   4. ID: v1, Version: 1, Save

@@ -1,0 +1,32 @@
+{
+  "id": "BotBti.DWG2DWG_BTI_LISP",
+  "engine": "Autodesk.AutoCAD+25_1",
+  "appbundles": ["BotBti.BtiPlugin+v1"],
+  "commandLine": [
+    "$(engine.path)\\accoreconsole.exe /i \"$(args[inputFile].path)\" /s \"$(args[scriptFile].path)\""
+  ],
+  "parameters": {
+    "inputFile": {
+      "verb": "get",
+      "description": "Input DWG from Leica",
+      "localName": "input.dwg",
+      "required": true
+    },
+    "scriptFile": {
+      "verb": "get",
+      "description": "LISP script BTI_APPLY.lsp",
+      "localName": "BTI_APPLY.lsp",
+      "required": true,
+      "ondemand": false
+    },
+    "resultFile": {
+      "verb": "put",
+      "description": "Output DWG with BTI blocks",
+      "localName": "result.dwg",
+      "required": true
+    }
+  },
+  "description": "BTI processor with LISP script for Leica integration",
+  "version": 1
+}
+

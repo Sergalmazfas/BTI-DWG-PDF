@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage
+  SchemaVersion="1.0"
+  Name="BTI_TemplateAppBundle"
+  AppVersion="1.0.0"
+  ProductCode="{9D9A1C3A-7A21-4E51-8DFA-FA731C2A8D14}">
+  <CompanyDetails Name="BTI" Url="https://btibot.com"/>
+  <Components>
+    <RuntimeRequirements OS="Windows" Platform="AutoCAD" SeriesMin="R25.1"/>
+    <ComponentEntry
+      AppName="BTI_TemplatePlugin"
+      ModuleName="./Contents/BTI_TemplatePlugin.dll"
+      AppType="NetAssembly"
+      LoadOnAutoCADStartup="True"/>
+    <ComponentEntry
+      AppName="BTI_TemplateDwt"
+      ModuleName="./Contents/BTI_Template.dwt"
+      AppType="Dependency"/>
+  </Components>
+</ApplicationPackage>
+

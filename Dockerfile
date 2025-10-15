@@ -19,6 +19,8 @@ COPY app.py .
 COPY dwg_converter.py .
 COPY gcs_queue_manager.py .
 COPY forge_appbundle_manager.py .
+COPY forge_controller.py .
+COPY forge_client.py .
 
 # Создание пользователя
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app

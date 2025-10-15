@@ -1,4 +1,21 @@
 steps:
+  # Тест APS Pipeline перед деплоем
+  - name: 'python:3.11'
+    id: 'test-aps-pipeline'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🧪 Запуск теста APS pipeline..."
+        pip install --quiet google-cloud-storage google-cloud-secret-manager requests
+        python3 test_aps_full_pipeline.py
+        if [ $? -eq 0 ]; then
+          echo "✅ APS Pipeline тест пройден!"
+        else
+          echo "❌ APS Pipeline тест провален!"
+          exit 1
+        fi
+  
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/$PROJECT_ID/dwg-processor-metadata:latest', '.']

@@ -1,0 +1,14 @@
+{
+  "status": "failedInstructions",
+  "reportUrl": "https://dasprod-store.s3.amazonaws.com/workItem/BotBti/cc3e4a02574645f082af4e48c60eaac4/report?X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjECIaCXVzLWVhc3QtMSJHMEUCIE3PMHtt0PVbHpnklljyD3dXMBWW0PITw54oyHX236uGAiEAkZcA50SmCbRw3ESAGptkPAkHYN0e3ogYiZrAWpCAecoqiQMIu%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAEGgwyMjA0NzMxNTIzMTAiDD5ZGmQ77XUgHTAl8CrdAkLzD5vUULWjRgOl%2B57riNM2mh8hG7%2BFlnqmwS%2FXiVO8oFJsm3BfdlYS%2BZX%2FPwc6DYV232wmkDa3zM00UCTE%2F0FcIyAWAjTc8ZaClCRu2rpUg5WqPv1y0zr%2FJ7CSsk3sz9coistjuvw6H3E5n2zALL5NTfzE5lqTSAc5R6VFvK%2Fti3qzVjOXEeGA3y%2BJlWnHtyZfcIyhvOzxciMd2MiUO1LwrnrNW9dbWILibRIp5GDiUrOwPjjpPIt9SzOwLsVCZU43%2BiLTo%2BFp5V%2BnOO92snZ516BkHAq1U%2Bz59ud5LTAsHOCgakpAWYygXyuJfcdXS%2BH9BkNhInMPqFY5FmwmSfeSstceSXmllEFRfEmP8tVRm7vax4wXaq8ANW1yTHCccoPQmgc1BDnk53LWDBm9kWvbZgpo5qQCsc9dpItBQxkyG%2BVz00Je9iyOfT5HfqVlluMJ3Tl0s%2B4994h2vlowyOiYxwY6ngFizaIUWCP02p9oBFrWcxlhLRga04YL5lkYq%2Bilupi1X9LPjeVcdjlK02jRYi5iRG3CetG0i4nxN047rTTkCV%2FQfaTNqJ6OH4bwP2g05WYRFRZaCNCuKxFw0lAjilT%2FSpoBPtT%2B3Qu4gZTrX%2Bh5xKiGtqHTW4Dz3Mtg1wEN5UsBCJnUC568%2BnCaqFxgH52ieNJKeOp8KwdXnOYTbSDiXQ%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIATGVJZKM3M36H3XN3%2F20251008%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251008T100424Z&X-Amz-SignedHeaders=host&X-Amz-Signature=7a556c1451e541d5185018c82b45e101aa7cb36221eada70316d20f64cbac1fa",
+  "activityId": "AutoCAD.PlotToPDF+25_0",
+  "stats": {
+    "timeQueued": "2025-10-08T10:04:18.7942834Z",
+    "timeDownloadStarted": "2025-10-08T10:04:18.9061742Z",
+    "timeInstructionsStarted": "2025-10-08T10:04:19.1153204Z",
+    "timeInstructionsEnded": "2025-10-08T10:04:20.8811699Z",
+    "timeFinished": "2025-10-08T10:04:21.2429883Z",
+    "bytesDownloaded": 43459
+  },
+  "id": "cc3e4a02574645f082af4e48c60eaac4"
+}

@@ -1,0 +1,13 @@
+{
+  "activityId": "BotBti.SimpleDWG2DWG_NoTemplate+$LATEST",
+  "arguments": {
+    "HostDWG": {
+      "url": "https://storage.googleapis.com/btibot-queue/test_input/basmannyi_test_20251008_130043.zip?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100046Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=48511b5d4e0bc95a1fd4122c9f1d012931a280d38b4edad740e7d42c2a15a9ef56b9fdb7f01d92b5c531595d9544575cb51241780c2f37e2f011a9b89951408009f54abd30c0f5c622989bbb3b3dbb01143da9d5ac66e00e9ab60b8c51471dca2748f86681e7bd5b7ce6ea5afdc0f2915b3484d78c1be65c97a24b454e7af2a1f54acee27fc254803034cc4f8c50055f120e1ba9a681ec8b1d358eea31bf0509dd91a430823fbc73ffd0e794f1bc2feb142bc10c6be7eba68a81743e5714dec52e9678ec912da8542b9ace21d77e1f91247448b5b9662ddfbc97d9a6692c2510a9597f9c014f4cf880b07d307e1f36857af48d857c9aad2e9cb6b2234d7e2e95",
+      "verb": "get"
+    },
+    "ResultDWG": {
+      "url": "https://storage.googleapis.com/btibot-processed/test_output/basmannyi_result_20251008_130043.dwg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T100046Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=content-type%3Bhost&X-Goog-Signature=82dc8d1fd12d055931294d7523ce80f4b1f20a602cdc9b9d2e145b6f78e76a1d3b2362223a7c45d15ebd7fd1e2fb6b48838ec758552b607f3dfa079c971bbf5ba4db675aef7c9aac68495ad7fa69e6d85cd5cb736068d9d80a441006b4315b35ec8a63d86cc43ac42948e6525b1ed8bb24fc652c871c492e8f0ddac54b5d4bafa57213dbe72fa30f2426e4da316f9b724beb2bb78f19e6b8ee71a01f6f07f89d3add14f0c1efb609289895e5754ce3bdb7f587560600f491c4edca61b144198aba6f2ceee47aab792f24e06f883a6d81b3492472ff182f7da44343ecdda9856a0c5310c8b6206553de042540806d2e62330567fc4d1748064b00c998f03c6b5e",
+      "verb": "put"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage 
+  SchemaVersion="1.0" 
+  Version="2.0" 
+  AutodeskProduct="AutoCAD" 
+  ProductType="Application"
+  Name="BtiPlugin"
+  Description="BTI Full Room Drafting with Leica Integration"
+  Author="BTI Team">
+  
+  <Components Description="BTI Complete Processor - Doors, Windows, Dimensions, Area">
+    <RuntimeRequirements 
+      OS="Win64" 
+      Platform="AutoCAD" 
+      SeriesMin="R24.0" 
+      SeriesMax="R26.0" />
+  </Components>
+  
+  <!-- LISP Scripts for BTI Processing -->
+  <!-- 
+    🎨 BTI_APPLY_COLOR.lsp - Color-based recognition (Leica colors → BTI blocks)
+    📐 BTI_APPLY.lsp - Layer-based recognition  
+    🔧 BTI_ORTHO_ADJUST.lsp - Room corner alignment
+    🚪 BTI_APPLY_OBJECTS.lsp - Doors and windows insertion
+    📏 BTI_DIM_AREA.lsp - Dimensions and area calculation
+    🧹 BTI_CLEANUP.lsp - Cleanup temporary objects
+  -->
+  
+</ApplicationPackage>
+

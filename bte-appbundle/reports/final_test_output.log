@@ -1,0 +1,79 @@
+Copying file://bte-appbundle/archives/basmannyi_novyi_obmernyi.dwg to gs://btibot-queue/test_input/basmannyi_20251008_135723.dwg
+  
+......
+================================================================================
+🧩 Тест BTEInsertTemplate Activity
+================================================================================
+
+📂 DWG файл: bte-appbundle/archives/basmannyi_novyi_obmernyi.dwg (52420 bytes)
+☁️  Загрузка DWG в GCS: gs://btibot-queue/test_input/basmannyi_20251008_135723.dwg
+🔗 Генерация signed URLs...
+✅ Input URL: https://storage.googleapis.com/btibot-queue/test_input/basmannyi_20251008_135723...
+✅ Output URL: https://storage.googleapis.com/btibot-processed/test_output/basmannyi_result_202...
+
+🔑 Получение токена APS...
+✅ Токен получен
+
+🚀 Создание WorkItem...
+
+🔄 Попытка с Activity: BTEInsertTemplate+v1
+📋 Payload:
+{
+  "activityId": "BTEInsertTemplate+v1",
+  "arguments": {
+    "inputFile": {
+      "url": "https://storage.googleapis.com/btibot-queue/test_input/basmannyi_20251008_135723.dwg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T105726Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=4030567058e6486a7710b3e46662284e5fe8b85b72e6676ead4189cdebc21111c0fb8e797900f31323b46b250d6782032664f27a4f164b8d60b73076daaf5ceca52b0103bf332220e07fe19655cc645fcb8a6eb74bfe7cddd721f8e02e09ad28cb6ed69956364f9c196c0f716e9edc739ff6f35016e9e9f6bd2893c356aafb0ffd9b0b8c8e2877dbca102e06e4c4a54eddb61abc867a6f5f12a79964b84a48d75ba0f23ec01411ad0ea0e25bbc4146fe3e251115f69d6fda962d880f9b9114b570998c539a3d2968e98e53576a1c58fff553f90aa406c252bab7a5ca9464cc0a992c8b00a48dfc3ac1805e85648c22b22a2c7f8ef4f1a461f68a61276da0dc72"
+    },
+    "resultFile": {
+      "url": "https://storage.googleapis.com/btibot-processed/test_output/basmannyi_result_20251008_135723.dwg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T105726Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=content-type%3Bhost&X-Goog-Signature=5070219813043c9ee09316d3b7d7063e7658e9d41142871d2f821e28e3bc0b2ac2f0f234439777e48d0452484c79a3b2efae445c7329a5867b00bc301a358f0d7449124a81ae0781f83bcd4c0db1d92b8846bc5e9469dd17be9f99bfe0ddc9bd0252f0251b05639ca266aa671cb04ca3669fcfe728267846d5a20aa573bfc49332b2fdb431c1120bb9dabbe8e9319175cb14d46755c042d7c53c623bcc31ca5684cd679ab887e06243be0cd3727f2937ce4023e8dbe5be3b8adf590c86a6edbfab9361c57655e5701018522cb9475b961cfd802bd849fdb22a47110af3fbcda6f8c63d1aada1a437ec1d60c418d89b742fff81fc325720f5841bccf93696ea98",
+      "verb": "put"
+    }
+  }
+}
+
+❌ Ошибка создания WorkItem: 400
+{"":["Cannot parse id."],"workItem":["A value for the 'workItem' parameter or property was not provided."],"activityId":["Cannot parse id."]}
+
+🔄 Попытка с Activity: BotBti.BTEInsertTemplate+v1
+📋 Payload:
+{
+  "activityId": "BotBti.BTEInsertTemplate+v1",
+  "arguments": {
+    "inputFile": {
+      "url": "https://storage.googleapis.com/btibot-queue/test_input/basmannyi_20251008_135723.dwg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T105726Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=4030567058e6486a7710b3e46662284e5fe8b85b72e6676ead4189cdebc21111c0fb8e797900f31323b46b250d6782032664f27a4f164b8d60b73076daaf5ceca52b0103bf332220e07fe19655cc645fcb8a6eb74bfe7cddd721f8e02e09ad28cb6ed69956364f9c196c0f716e9edc739ff6f35016e9e9f6bd2893c356aafb0ffd9b0b8c8e2877dbca102e06e4c4a54eddb61abc867a6f5f12a79964b84a48d75ba0f23ec01411ad0ea0e25bbc4146fe3e251115f69d6fda962d880f9b9114b570998c539a3d2968e98e53576a1c58fff553f90aa406c252bab7a5ca9464cc0a992c8b00a48dfc3ac1805e85648c22b22a2c7f8ef4f1a461f68a61276da0dc72"
+    },
+    "resultFile": {
+      "url": "https://storage.googleapis.com/btibot-processed/test_output/basmannyi_result_20251008_135723.dwg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T105726Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=content-type%3Bhost&X-Goog-Signature=5070219813043c9ee09316d3b7d7063e7658e9d41142871d2f821e28e3bc0b2ac2f0f234439777e48d0452484c79a3b2efae445c7329a5867b00bc301a358f0d7449124a81ae0781f83bcd4c0db1d92b8846bc5e9469dd17be9f99bfe0ddc9bd0252f0251b05639ca266aa671cb04ca3669fcfe728267846d5a20aa573bfc49332b2fdb431c1120bb9dabbe8e9319175cb14d46755c042d7c53c623bcc31ca5684cd679ab887e06243be0cd3727f2937ce4023e8dbe5be3b8adf590c86a6edbfab9361c57655e5701018522cb9475b961cfd802bd849fdb22a47110af3fbcda6f8c63d1aada1a437ec1d60c418d89b742fff81fc325720f5841bccf93696ea98",
+      "verb": "put"
+    }
+  }
+}
+
+❌ Ошибка создания WorkItem: 400
+{"args":["Unused arguments. The following arguments matched no parameters: inputFile,resultFile (Parameter 'args')"]}
+
+🔄 Попытка с Activity: BTEInsertTemplate+1
+📋 Payload:
+{
+  "activityId": "BTEInsertTemplate+1",
+  "arguments": {
+    "inputFile": {
+      "url": "https://storage.googleapis.com/btibot-queue/test_input/basmannyi_20251008_135723.dwg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T105726Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=4030567058e6486a7710b3e46662284e5fe8b85b72e6676ead4189cdebc21111c0fb8e797900f31323b46b250d6782032664f27a4f164b8d60b73076daaf5ceca52b0103bf332220e07fe19655cc645fcb8a6eb74bfe7cddd721f8e02e09ad28cb6ed69956364f9c196c0f716e9edc739ff6f35016e9e9f6bd2893c356aafb0ffd9b0b8c8e2877dbca102e06e4c4a54eddb61abc867a6f5f12a79964b84a48d75ba0f23ec01411ad0ea0e25bbc4146fe3e251115f69d6fda962d880f9b9114b570998c539a3d2968e98e53576a1c58fff553f90aa406c252bab7a5ca9464cc0a992c8b00a48dfc3ac1805e85648c22b22a2c7f8ef4f1a461f68a61276da0dc72"
+    },
+    "resultFile": {
+      "url": "https://storage.googleapis.com/btibot-processed/test_output/basmannyi_result_20251008_135723.dwg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=dwg-processor-sa%40talkhint.iam.gserviceaccount.com%2F20251008%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20251008T105726Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=content-type%3Bhost&X-Goog-Signature=5070219813043c9ee09316d3b7d7063e7658e9d41142871d2f821e28e3bc0b2ac2f0f234439777e48d0452484c79a3b2efae445c7329a5867b00bc301a358f0d7449124a81ae0781f83bcd4c0db1d92b8846bc5e9469dd17be9f99bfe0ddc9bd0252f0251b05639ca266aa671cb04ca3669fcfe728267846d5a20aa573bfc49332b2fdb431c1120bb9dabbe8e9319175cb14d46755c042d7c53c623bcc31ca5684cd679ab887e06243be0cd3727f2937ce4023e8dbe5be3b8adf590c86a6edbfab9361c57655e5701018522cb9475b961cfd802bd849fdb22a47110af3fbcda6f8c63d1aada1a437ec1d60c418d89b742fff81fc325720f5841bccf93696ea98",
+      "verb": "put"
+    }
+  }
+}
+
+❌ Ошибка создания WorkItem: 400
+{"":["Cannot parse id."],"workItem":["A value for the 'workItem' parameter or property was not provided."],"activityId":["Cannot parse id."]}
+
+❌ Не удалось создать WorkItem ни с одним вариантом Activity ID
+
+💡 Необходимо создать alias 'v1' через Web UI:
+   1. https://aps.autodesk.com
+   2. My Apps → Design Automation → AutoCAD
+   3. Activities → BTEInsertTemplate → Aliases → Create
+   4. ID: v1, Version: 1, Save

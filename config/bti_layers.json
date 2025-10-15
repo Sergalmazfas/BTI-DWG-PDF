@@ -1,0 +1,106 @@
+{
+  "version": "1.0",
+  "description": "Стандарты слоев БТИ для автоматизированной обработки чертежей",
+  "layers": {
+    "A-WALL": {
+      "description": "Стены",
+      "color": 8,
+      "color_name": "серый",
+      "linetype": "Continuous",
+      "lineweight": "0.25mm",
+      "plot": true
+    },
+    "A-DOOR": {
+      "description": "Двери",
+      "color": 2,
+      "color_name": "желтый",
+      "linetype": "Continuous",
+      "lineweight": "0.18mm",
+      "plot": true
+    },
+    "A-WINDOW": {
+      "description": "Окна",
+      "color": 4,
+      "color_name": "голубой",
+      "linetype": "Continuous",
+      "lineweight": "0.18mm",
+      "plot": true
+    },
+    "A-PLUMBING": {
+      "description": "Сантехника",
+      "color": 3,
+      "color_name": "зеленый",
+      "linetype": "Continuous",
+      "lineweight": "0.13mm",
+      "plot": true
+    },
+    "A-DIM": {
+      "description": "Размеры",
+      "color": 1,
+      "color_name": "красный",
+      "linetype": "Continuous",
+      "lineweight": "0.13mm",
+      "plot": true
+    },
+    "A-TEXT": {
+      "description": "Текст и штамп",
+      "color": 7,
+      "color_name": "белый",
+      "linetype": "Continuous",
+      "lineweight": "0.13mm",
+      "plot": true
+    },
+    "MARK_DOOR": {
+      "description": "Метки дверей (служебный слой Leica)",
+      "color": 5,
+      "color_name": "фиолетовый",
+      "linetype": "Continuous",
+      "lineweight": "0.09mm",
+      "plot": false,
+      "temp": true
+    },
+    "MARK_WINDOW": {
+      "description": "Метки окон (служебный слой Leica)",
+      "color": 5,
+      "color_name": "фиолетовый",
+      "linetype": "Continuous",
+      "lineweight": "0.09mm",
+      "plot": false,
+      "temp": true
+    }
+  },
+  "blocks": {
+    "BTI_DOOR": {
+      "description": "Типовой блок двери БТИ",
+      "layer": "A-DOOR",
+      "source": "BTI_Template.dwg"
+    },
+    "BTI_WINDOW": {
+      "description": "Типовой блок окна БТИ",
+      "layer": "A-WINDOW",
+      "source": "BTI_Template.dwg"
+    },
+    "BTI_SINK": {
+      "description": "Раковина",
+      "layer": "A-PLUMBING",
+      "source": "BTI_Template.dwg"
+    },
+    "BTI_TOILET": {
+      "description": "Унитаз",
+      "layer": "A-PLUMBING",
+      "source": "BTI_Template.dwg"
+    },
+    "BTI_FRAME": {
+      "description": "Рамка чертежа",
+      "layer": "A-TEXT",
+      "source": "BTI_Template.dwg"
+    }
+  },
+  "settings": {
+    "units": "millimeters",
+    "scale": "1:100",
+    "paper_size": "A4",
+    "orientation": "landscape"
+  }
+}
+

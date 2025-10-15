@@ -321,7 +321,7 @@ class ForgeAppBundleManager:
             }
             
             # Выбираем Activity в зависимости от типа (используем правильный engine)
-            activity_id = f"{activity_type}Activity+prod"
+            activity_id = f"{activity_type}Activity"
             
             # URL для callback (APS будет вызывать этот endpoint при завершении)
             callback_url = "https://dwg-processor-metadata-637190449180.europe-west1.run.app/aps-callback"

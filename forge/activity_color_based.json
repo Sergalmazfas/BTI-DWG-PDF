@@ -1,0 +1,34 @@
+{
+  "id": "BotBti.BTI_APPLY_COLOR",
+  "engine": "Autodesk.AutoCAD+25_1",
+  "appbundles": ["BotBti.BtiPlugin+v1"],
+  "commandLine": [
+    "$(engine.path)\\accoreconsole.exe /i \"$(args[inputFile].path)\" /s \"$(appbundles[BtiPlugin].path)/Contents/BTI_APPLY_COLOR.lsp\""
+  ],
+  "parameters": {
+    "inputFile": {
+      "verb": "get",
+      "description": "Input DWG from Leica with colored objects",
+      "localName": "input.dwg",
+      "required": true
+    },
+    "resultFile": {
+      "verb": "put",
+      "description": "Output DWG with BTI blocks inserted",
+      "localName": "result.dwg",
+      "required": true
+    }
+  },
+  "description": "BTI Auto-Processor: Color-based block insertion from Leica DISTO",
+  "settings": {
+    "color_mapping": {
+      "5": "BTI_WINDOW",
+      "30": "BTI_DOOR",
+      "3": "BTI_TOILET",
+      "1": "BTI_SINK",
+      "6": "BTI_SHOWER"
+    }
+  },
+  "version": 1
+}
+

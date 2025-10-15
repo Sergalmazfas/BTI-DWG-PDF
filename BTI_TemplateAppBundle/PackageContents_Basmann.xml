@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage 
+  SchemaVersion="1.0" 
+  AutodeskProduct="AutoCAD" 
+  Name="BTI_InsertBasman" 
+  AppVersion="1.0.0" 
+  Description="Insert BTI Basmann template into DWG files"
+  Author="BTI-Bot"
+  HelpFile="./Contents/help.txt"
+  ProductCode="{F1E2D3C4-B5A6-4978-8E9F-A1B2C3D4E5F6}"
+  UpgradeCode="{G2F3E4D5-C6B7-5A89-9F0G-B2C3D4E5F6A7}">
+  
+  <CompanyDetails 
+    Name="BTI Services" 
+    Phone="" 
+    Url="https://github.com/Sergalmazfas/BTI-DWG-PDF" 
+    Email="support@bti.local"/>
+  
+  <RuntimeRequirements 
+    OS="Win64" 
+    Platform="AutoCAD*" 
+    SeriesMin="R25.0" 
+    SeriesMax="R25.1"/>
+  
+  <Components Description="BTI Insert Basmann Plugin">
+    <RuntimeRequirements 
+      OS="Win64" 
+      Platform="AutoCAD*" 
+      SeriesMin="R25.0" 
+      SeriesMax="R25.1"/>
+    
+    <ComponentEntry 
+      AppName="BTI_InsertBasman" 
+      Version="1.0.0" 
+      ModuleName="./Contents/BTI_InsertBasman.dll" 
+      AppDescription="Insert BTI Basmann template into DWG" 
+      AppType="Plugin"
+      LoadOnCommandInvocation="True" 
+      LoadOnAutoCADStartup="True">
+      
+      <Commands GroupName="BTI_Commands">
+        <Command Global="InsertBTIBasman" Local="InsertBTIBasman"/>
+      </Commands>
+    </ComponentEntry>
+  </Components>
+</ApplicationPackage>
+

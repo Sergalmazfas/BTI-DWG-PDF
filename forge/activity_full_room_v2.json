@@ -1,0 +1,28 @@
+{
+  "id": "BotBti.BTI_FULL_ROOM_V2",
+  "engine": "Autodesk.AutoCAD+25_1",
+  "appbundles": ["BotBti.BtiPluginV2+v2"],
+  "commandLine": [
+    "$(engine.path)\\accoreconsole.exe",
+    "/i", "\"$(args[inputFile].path)\"",
+    "/s", "\"$(appbundles[BtiPluginV2].path)/Contents/BTI_APPLY_COLOR.lsp\"",
+    "/b", "\"$(appbundles[BtiPluginV2].path)/Contents/BTI_FULL_PROCESS.scr\"",
+    "/o", "\"$(args[outputFile].path)\""
+  ],
+  "parameters": {
+    "inputFile": {
+      "localName": "input.dwg",
+      "verb": "get",
+      "description": "Input DWG file from Leica DISTO",
+      "required": true
+    },
+    "outputFile": {
+      "localName": "result.dwg",
+      "verb": "put",
+      "description": "Output BTI-compliant DWG file",
+      "required": true
+    }
+  },
+  "description": "BTI Full Room Processor v2 - Complete drafting workflow: ortho adjustment, doors, windows, dimensions, area calculation"
+}
+

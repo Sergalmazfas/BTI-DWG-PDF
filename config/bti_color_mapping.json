@@ -1,0 +1,77 @@
+{
+  "version": "2.0",
+  "description": "Цветовая схема Leica DISTO → Блоки БТИ",
+  "mapping_type": "color_based",
+  "color_mapping": {
+    "5": {
+      "color_name": "Синий",
+      "color_hex": "#0000FF",
+      "leica_object": "Окно",
+      "bti_block": "BTI_WINDOW",
+      "bti_layer": "A-WINDOW",
+      "emoji": "🟦"
+    },
+    "30": {
+      "color_name": "Оранжевый",
+      "color_hex": "#FFA500",
+      "leica_object": "Дверь",
+      "bti_block": "BTI_DOOR",
+      "bti_layer": "A-DOOR",
+      "emoji": "🟧"
+    },
+    "3": {
+      "color_name": "Зеленый",
+      "color_hex": "#00FF00",
+      "leica_object": "Унитаз",
+      "bti_block": "BTI_TOILET",
+      "bti_layer": "A-PLUMBING",
+      "emoji": "🟩"
+    },
+    "1": {
+      "color_name": "Красный",
+      "color_hex": "#FF0000",
+      "leica_object": "Раковина",
+      "bti_block": "BTI_SINK",
+      "bti_layer": "A-PLUMBING",
+      "emoji": "🟥"
+    },
+    "6": {
+      "color_name": "Фиолетовый",
+      "color_hex": "#FF00FF",
+      "leica_object": "Душ",
+      "bti_block": "BTI_SHOWER",
+      "bti_layer": "A-PLUMBING",
+      "emoji": "🟪"
+    },
+    "7": {
+      "color_name": "Белый",
+      "color_hex": "#FFFFFF",
+      "leica_object": "Стены/контуры",
+      "bti_block": null,
+      "bti_layer": "A-WALL",
+      "emoji": "⚪",
+      "action": "keep_as_is"
+    }
+  },
+  "bti_layers": {
+    "A-WALL": {"color": 8, "linetype": "Continuous", "description": "Стены"},
+    "A-DOOR": {"color": 2, "linetype": "Continuous", "description": "Двери"},
+    "A-WINDOW": {"color": 4, "linetype": "Continuous", "description": "Окна"},
+    "A-PLUMBING": {"color": 3, "linetype": "Continuous", "description": "Сантехника"},
+    "A-DIM": {"color": 1, "linetype": "Continuous", "description": "Размеры"},
+    "A-TEXT": {"color": 7, "linetype": "Continuous", "description": "Текст/штамп"}
+  },
+  "process": {
+    "input": "DWG от Leica с цветными объектами",
+    "lisp_script": "BTI_APPLY_COLOR.lsp",
+    "output": "DWG с блоками БТИ на правильных слоях"
+  },
+  "advantages": [
+    "Не требует AI или Computer Vision",
+    "Не требует .NET компиляции для базовой функциональности",
+    "Работает в Forge AutoCAD Core (accoreconsole)",
+    "Визуально понятно (инженер видит цвета)",
+    "Легко расширяемо (добавить новые цвета/объекты)"
+  ]
+}
+

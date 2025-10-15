@@ -1,0 +1,27 @@
+{
+  "id": "BTI_DWG2DWG",
+  "appbundles": [
+    "$(appbundles[BTI_TemplateAppBundle].path)"
+  ],
+  "commandLine": [
+    "$(engine.path)\\accoreconsole.exe /al \"$(appbundles[BTI_TemplateAppBundle].path)\" /i \"$(args[inputFile].path)\" /s \"APPLYBTITEMPLATE\n\""
+  ],
+  "engine": "Autodesk.AutoCAD+25_1",
+  "parameters": {
+    "inputFile": {
+      "verb": "get",
+      "localName": "input.dwg",
+      "description": "Input DWG file",
+      "required": true
+    },
+    "resultFile": {
+      "verb": "put",
+      "localName": "output.dwg",
+      "description": "Output DWG file with BTI Template applied",
+      "required": true
+    }
+  },
+  "description": "BTI Template DWG to DWG processing - NO PDF",
+  "isPublic": false
+}
+
